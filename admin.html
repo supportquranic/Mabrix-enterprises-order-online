@@ -619,27 +619,6 @@
                     </div>
                 </div>
 
-                <!-- TESTING & DEMO TOOLS -->
-                <div class="bg-white border border-[#cbd7eb] rounded-2xl p-4 shadow-sm space-y-3">
-                    <h3 class="text-xs font-black uppercase text-[#15387C] tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-vial text-[#F6AD3A]"></i> Testing & Sound Controls
-                    </h3>
-
-                    <div class="space-y-2 text-xs">
-                        <button onclick="playChimeSound()" class="w-full bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] text-[#15387C] font-bold py-2 rounded-xl flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-bell text-[#F6AD3A]"></i> Test Audio Notification Sound
-                        </button>
-
-                        <button onclick="createMockOrder()" class="w-full bg-[#fef7ec] hover:bg-[#fdeed6] border border-[#f8d294] text-[#15387C] font-bold py-2 rounded-xl flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-plus text-[#F6AD3A]"></i> Simulate Incoming Order (Test Trigger)
-                        </button>
-
-                        <button onclick="clearAllOrders()" class="w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold py-2 rounded-xl flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-trash"></i> Reset / Clear All Orders
-                        </button>
-                    </div>
-                </div>
-
                 <!-- CLIENT MENU LINK -->
                 <div class="bg-[#eef3fb] border border-[#cbd7eb] rounded-2xl p-3.5 text-center text-xs">
                     <span class="text-slate-600 block mb-1">Customer Order Page:</span>
@@ -858,6 +837,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
             initRatesInput();
+            loadRemoteRates();
             loadOrders();
             setupStorageListener();
             setupPolling();
@@ -869,18 +849,48 @@
         });
 
         function initRatesInput() {
-            document.getElementById('settingDomesticRate').value = RATES.domestic;
-            document.getElementById('settingCommercialRate').value = RATES.commercial;
+            const domInput = document.getElementById('settingDomesticRate');
+            const comInput = document.getElementById('settingCommercialRate');
+            if (domInput) domInput.value = RATES.domestic;
+            if (comInput) comInput.value = RATES.commercial;
         }
 
-        function saveRates() {
+        async function loadRemoteRates() {
+            try {
+                const res = await fetch('/api/rates', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.rates) {
+                        if (data.rates.domestic) RATES.domestic = Number(data.rates.domestic);
+                        if (data.rates.commercial) RATES.commercial = Number(data.rates.commercial);
+                        localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
+                        initRatesInput();
+                        updateDashboardMetrics();
+                        renderSalesChart();
+                    }
+                }
+            } catch(e){}
+        }
+
+        async function saveRates() {
             const dom = Number(document.getElementById('settingDomesticRate').value) || 5000;
             const com = Number(document.getElementById('settingCommercialRate').value) || 10000;
             RATES.domestic = dom;
             RATES.commercial = com;
             localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
-            showToast("Rates updated successfully!");
+
+            // Broadcast to backend API live
+            try {
+                await fetch('/api/rates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domestic: dom, commercial: com })
+                });
+            } catch(e){}
+
+            showToast("Rates updated & synced live to customer page!");
             updateDashboardMetrics();
+            renderSalesChart();
         }
 
         // LOAD ORDERS (DUAL SYNC: API + LOCALSTORAGE)

@@ -270,7 +270,7 @@
                 <div class="pt-3 mt-2 border-t border-[#cbd7eb]">
                     <div class="flex items-center justify-between mb-2.5">
                         <div class="flex items-baseline gap-1.5">
-                            <span class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 5,000</span>
+                            <span id="domesticPriceDisplay" class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 5,000</span>
                             <span class="text-[10px] text-slate-500 font-bold">/ cylinder</span>
                         </div>
 
@@ -341,7 +341,7 @@
                 <div class="pt-3 mt-2 border-t border-[#f8d294]">
                     <div class="flex items-center justify-between mb-2.5">
                         <div class="flex items-baseline gap-1.5">
-                            <span class="text-base sm:text-lg font-black text-[#F6AD3A] font-display">PKR 10,000</span>
+                            <span id="commercialPriceDisplay" class="text-base sm:text-lg font-black text-[#F6AD3A] font-display">PKR 10,000</span>
                             <span class="text-[10px] text-slate-500 font-bold">/ cylinder</span>
                         </div>
 
@@ -643,6 +643,71 @@
             iban: "PK57ASCM0003860200003622"
         };
 
+        // DYNAMIC RATES (SYNCED LIVE WITH ADMIN PANEL & /api/rates)
+        let RATES = {
+            domestic: 5000,
+            commercial: 10000
+        };
+
+        function applyRates(rates) {
+            if (!rates) return;
+            if (rates.domestic) RATES.domestic = Number(rates.domestic);
+            if (rates.commercial) RATES.commercial = Number(rates.commercial);
+
+            const domEl = document.getElementById('domesticPriceDisplay');
+            if (domEl) domEl.textContent = `PKR ${RATES.domestic.toLocaleString()}`;
+
+            const comEl = document.getElementById('commercialPriceDisplay');
+            if (comEl) comEl.textContent = `PKR ${RATES.commercial.toLocaleString()}`;
+
+            // Update modal if currently open
+            if (state && state.selectedType) {
+                const isDom = (state.selectedType === 'domestic');
+                const qty = isDom ? state.domesticQty : state.commercialQty;
+                const price = isDom ? RATES.domestic : RATES.commercial;
+                const total = qty * price;
+                const qtyEl = document.getElementById('modalSelectedQty');
+                if (qtyEl) qtyEl.textContent = `${qty} Cyl (PKR ${total.toLocaleString()})`;
+            }
+        }
+
+        async function loadLiveRates() {
+            // 1. Instant local storage cache
+            try {
+                const cached = localStorage.getItem('mabrix_rates');
+                if (cached) {
+                    applyRates(JSON.parse(cached));
+                }
+            } catch(e){}
+
+            // 2. Fetch live rates from backend API
+            try {
+                const res = await fetch('/api/rates', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.rates) {
+                        applyRates(data.rates);
+                        localStorage.setItem('mabrix_rates', JSON.stringify(data.rates));
+                    }
+                }
+            } catch(e){}
+        }
+
+        // Cross-tab / cross-window live storage listener
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mabrix_rates') {
+                try {
+                    applyRates(JSON.parse(e.newValue));
+                } catch(err){}
+            }
+        });
+
+        // Initialize rates on page load and poll every 6 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLiveRates();
+            setInterval(loadLiveRates, 6000);
+        });
+
         // State
         const state = {
             domesticQty: 1,
@@ -742,7 +807,7 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
             const isDomestic = (type === 'domestic');
             const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
-            const unitPrice = isDomestic ? 5000 : 10000;
+            const unitPrice = isDomestic ? RATES.domestic : RATES.commercial;
             const totalBill = qty * unitPrice;
 
             document.getElementById('modalSelectedName').textContent = itemName;
@@ -788,7 +853,7 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
             const isDomestic = (state.selectedType === 'domestic');
             const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
-            const unitPrice = isDomestic ? 5000 : 10000;
+            const unitPrice = isDomestic ? RATES.domestic : RATES.commercial;
             const totalBill = qty * unitPrice;
 
             const name = document.getElementById('custName').value.trim();

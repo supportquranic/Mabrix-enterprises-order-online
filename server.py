@@ -15,12 +15,32 @@ PORT = 3000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
+RATES_FILE = os.path.join(DATA_DIR, 'rates.json')
 
-# Ensure data directory and orders.json exist
+# Ensure data directory, orders.json, and rates.json exist
 os.makedirs(DATA_DIR, exist_ok=True)
 if not os.path.exists(ORDERS_FILE):
     with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
         json.dump([], f)
+
+if not os.path.exists(RATES_FILE):
+    with open(RATES_FILE, 'w', encoding='utf-8') as f:
+        json.dump({'domestic': 5000, 'commercial': 10000}, f, indent=2)
+
+def read_rates():
+    try:
+        with open(RATES_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {'domestic': 5000, 'commercial': 10000}
+
+def write_rates(rates):
+    try:
+        with open(RATES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(rates, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception:
+        return False
 
 def read_orders():
     try:
@@ -52,6 +72,16 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == '/api/rates':
+            rates = read_rates()
+            response_data = json.dumps({'success': True, 'rates': rates}).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response_data)))
+            self.end_headers()
+            self.wfile.write(response_data)
+            return
+
         if parsed.path == '/api/orders':
             orders = read_orders()
             response_data = json.dumps({'success': True, 'count': len(orders), 'orders': orders}).encode('utf-8')
@@ -67,6 +97,29 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == '/api/rates':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                body = json.loads(post_body)
+            except Exception:
+                body = {}
+
+            current = read_rates()
+            if 'domestic' in body:
+                current['domestic'] = int(body['domestic'])
+            if 'commercial' in body:
+                current['commercial'] = int(body['commercial'])
+            current['updatedAt'] = datetime.now().isoformat()
+            write_rates(current)
+
+            response_data = json.dumps({'success': True, 'rates': current}).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response_data)))
+            self.end_headers()
+            self.wfile.write(response_data)
+            return
         if parsed.path == '/api/orders':
             content_length = int(self.headers.get('Content-Length', 0))
             post_body = self.rfile.read(content_length).decode('utf-8')
