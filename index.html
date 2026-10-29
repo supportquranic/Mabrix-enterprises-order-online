@@ -475,19 +475,19 @@
                     ></textarea>
                 </div>
 
-                <!-- Time of Delivery (Keep only Urgent / ASAP and Within 1-2 Hours) -->
+                <!-- Time of Delivery (2 Options: As Soon As Possible & Within 24 Hours) -->
                 <div>
                     <label class="block text-[#0f172a] font-bold mb-1">
                         Preferred Time of Delivery <span class="text-[#15387C]">*</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
                         <label class="flex items-center gap-2 bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb] cursor-pointer hover:border-[#15387C]">
-                            <input type="radio" name="deliveryTime" value="Urgent / ASAP (Express)" checked class="accent-[#15387C]">
-                            <span class="text-[#15387C] font-bold">Urgent / ASAP</span>
+                            <input type="radio" name="deliveryTime" value="As Soon As Possible" checked class="accent-[#15387C]">
+                            <span class="text-[#15387C] font-bold">As Soon As Possible</span>
                         </label>
                         <label class="flex items-center gap-2 bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb] cursor-pointer hover:border-[#15387C]">
-                            <input type="radio" name="deliveryTime" value="Within 1 - 2 Hours" class="accent-[#15387C]">
-                            <span class="text-slate-700 font-bold">Within 1-2 Hours</span>
+                            <input type="radio" name="deliveryTime" value="Within 24 Hours" class="accent-[#15387C]">
+                            <span class="text-slate-700 font-bold">Within 24 Hours</span>
                         </label>
                     </div>
                 </div>
@@ -834,27 +834,40 @@ IBAN: ${CONFIG.iban}
             text += `\nPlease confirm and dispatch my order. Thank you!`;
 
             closeBookingModal();
-            openWhatsAppDirect(CONFIG.whatsappNumber, text);
+            setTimeout(() => {
+                openWhatsAppDirect(CONFIG.whatsappNumber, text);
+            }, 100);
         }
 
-        // Open WhatsApp directly in the app (not browser)
+        // Open WhatsApp directly in the app (strictly opens chat with 0332 4499022)
         function openWhatsAppDirect(phone, messageText) {
+            let cleanPhone = String(phone).replace(/[^0-9]/g, '');
+            if (cleanPhone.startsWith('0')) {
+                cleanPhone = '92' + cleanPhone.substring(1);
+            }
+            if (!cleanPhone.startsWith('92')) {
+                cleanPhone = '92' + cleanPhone;
+            }
+
             const encoded = encodeURIComponent(messageText);
             const isMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS/i.test(navigator.userAgent);
             
             if (isMobile) {
-                // Direct WhatsApp App Protocol (opens WhatsApp immediately without browser landing page)
-                const nativeUrl = `whatsapp://send?phone=${phone}&text=${encoded}`;
-                window.location.href = nativeUrl;
+                // Native WhatsApp deep link scheme - directly opens chat in WhatsApp app
+                const nativeUri = `whatsapp://send?phone=${cleanPhone}&text=${encoded}`;
                 
-                // Fallback to official web API if native app didn't respond
+                // Create clean temporary anchor and click
+                const a = document.createElement('a');
+                a.href = nativeUri;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
                 setTimeout(() => {
-                    if (document.hidden || document.webkitHidden) return;
-                    window.location.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`;
-                }, 1800);
+                    if (document.body.contains(a)) document.body.removeChild(a);
+                }, 500);
             } else {
-                // Desktop
-                window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`, '_blank');
+                // Desktop browser -> WhatsApp Web
+                window.open(`https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encoded}`, '_blank');
             }
         }
 
