@@ -155,7 +155,7 @@
                         <i class="fa-solid fa-phone"></i>
                     </a>
                     <!-- Direct WhatsApp -->
-                    <a href="https://wa.me/923324499022" id="headerWhatsAppBtn" target="_blank" title="WhatsApp 0332 4499022" class="w-9 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-base shadow-md active:scale-95 transition">
+                    <a href="javascript:void(0)" onclick="openWhatsAppDirect('923324499022', 'Hello Mabrix Enterprises, I would like to inquire about LPG cylinder supply.')" id="headerWhatsAppBtn" title="WhatsApp 0332 4499022" class="w-9 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-base shadow-md active:scale-95 transition">
                         <i class="fa-brands fa-whatsapp"></i>
                     </a>
                 </div>
@@ -371,8 +371,8 @@
             <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
                 <span>Designed by</span>
                 <a 
-                    href="https://wa.me/923294355677" 
-                    target="_blank" 
+                    href="javascript:void(0)" 
+                    onclick="openWhatsAppDirect('923294355677', 'Hello Talha, I am contacting you regarding your web design services.')" 
                     title="Chat with Talha Muzammil on WhatsApp (03294355677)"
                     class="inline-flex items-center gap-1.5 bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] font-black px-2.5 py-0.5 rounded-md border border-[#cbd7eb] shadow-sm active:scale-95 transition"
                 >
@@ -834,8 +834,28 @@ IBAN: ${CONFIG.iban}
             text += `\nPlease confirm and dispatch my order. Thank you!`;
 
             closeBookingModal();
-            const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
+            openWhatsAppDirect(CONFIG.whatsappNumber, text);
+        }
+
+        // Open WhatsApp directly in the app (not browser)
+        function openWhatsAppDirect(phone, messageText) {
+            const encoded = encodeURIComponent(messageText);
+            const isMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Direct WhatsApp App Protocol (opens WhatsApp immediately without browser landing page)
+                const nativeUrl = `whatsapp://send?phone=${phone}&text=${encoded}`;
+                window.location.href = nativeUrl;
+                
+                // Fallback to official web API if native app didn't respond
+                setTimeout(() => {
+                    if (document.hidden || document.webkitHidden) return;
+                    window.location.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`;
+                }, 1800);
+            } else {
+                // Desktop
+                window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`, '_blank');
+            }
         }
 
         // Copy to clipboard helper
