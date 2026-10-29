@@ -112,18 +112,65 @@
             transform: translateY(-1px);
         }
 
-        /* Chart bar styling */
-        .chart-bar-bg {
-            background-color: #f1f5f9;
-            border-radius: 12px;
+        /* ── BAL HORIZONTAL LINE GRAPH (CURVE SCRUBBER & UP/DOWN INDICATOR) ── */
+        .bal-plot {
             position: relative;
-            overflow: hidden;
+            display: block;
+            margin: 12px 0 6px;
+            --pad-y: 6px;
+            padding: var(--pad-y) 0;
+            --line: #1f9d55;
+            color: var(--line);
+            cursor: crosshair;
+            touch-action: pan-y;
         }
-
-        .chart-bar-fill {
-            background: linear-gradient(180deg, #F6AD3A 0%, #15387C 100%);
-            border-radius: 12px;
-            transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        .bal-plot[data-up="false"] {
+            --line: #e5484d;
+            color: var(--line);
+        }
+        .bal-line {
+            display: block;
+            width: 100%;
+            height: 105px;
+            overflow: visible;
+        }
+        .bal-curve {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+            transition: stroke 0.25s ease;
+        }
+        .bal-guide {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            width: 1.5px;
+            margin-left: -0.75px;
+            background: currentColor;
+            opacity: 0.25;
+            pointer-events: none;
+            transition: left 0.14s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease;
+        }
+        .bal-tip {
+            position: absolute;
+            width: 13px;
+            height: 13px;
+            margin: -6.5px 0 0 -6.5px;
+            border-radius: 999px;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px currentColor, 0 3px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            transition: left 0.14s cubic-bezier(0.2, 0.9, 0.3, 1), top 0.14s cubic-bezier(0.2, 0.9, 0.3, 1), scale 0.16s ease;
+        }
+        .bal-plot:active .bal-tip,
+        .bal-plot.is-scrubbing .bal-tip {
+            scale: 1.25;
+        }
+        .bal-plot.is-scrubbing .bal-guide {
+            opacity: 0.6;
         }
 
         /* Floating dark navbar */
@@ -345,41 +392,73 @@
 
                 </div>
 
-                <!-- DAILY SALES GRAPH (SHOWS SALES REVENUE ACROSS DAYS) -->
+                <!-- DAILY SALES HORIZONTAL LINE GRAPH (WITH SVG CURVE, SCRUBBER & UP/DOWN INDICATOR) -->
                 <div class="bg-white border border-[#e2e8f0] rounded-3xl p-4 shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
+                    <!-- Graph Header with Live Scrubbed Value & Up/Down Indicator -->
+                    <div class="flex items-start justify-between mb-1">
                         <div>
-                            <h3 class="text-sm font-black text-[#15387C] font-display">Daily Sales Graph</h3>
-                            <p class="text-[10.5px] text-[#64748b]">Sales revenue across days (PKR)</p>
-                        </div>
-                        <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#15387C] bg-[#eef3fb] border border-[#cbd7eb] px-2 py-0.5 rounded-md">
-                            <i class="fa-solid fa-chart-line text-[#F6AD3A]"></i> PKR Revenue
-                        </span>
-                    </div>
-
-                    <!-- Visual Bars Container -->
-                    <div class="relative pt-7 pb-2">
-                        <!-- Floating Tooltip for selected Day -->
-                        <div id="chartTooltip" class="absolute -top-1 left-[50%] -translate-x-1/2 bg-[#15387C] text-white rounded-xl px-2.5 py-1 text-[10px] font-black shadow-lg flex flex-col items-center pointer-events-none transition-all duration-200 border border-[#F6AD3A] z-10">
-                            <span class="text-[9px] text-slate-300" id="tooltipDay">Today</span>
-                            <span class="text-[#F6AD3A] font-extrabold text-[11px]" id="tooltipValue">PKR 25,000</span>
+                            <span class="text-[10.5px] text-[#64748b] font-bold uppercase tracking-wider block" id="scrubDayLabel">Today's Sales</span>
+                            <div class="flex items-baseline gap-2 mt-0.5">
+                                <h3 class="text-2xl font-black text-[#15387C] font-display tabular-nums" id="scrubAmount">PKR 25,000</h3>
+                            </div>
                         </div>
 
-                        <!-- 7 Column Bars (Populated Dynamically) -->
-                        <div class="grid grid-cols-7 gap-2 h-36 items-end" id="salesBarsContainer">
-                            <!-- Injected by renderSalesChart() -->
+                        <!-- Up/Down Pill Badge -->
+                        <div id="scrubDeltaBadge" class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 transition-all duration-200">
+                            <i class="fa-solid fa-arrow-trend-up text-[10px]" id="scrubDeltaIcon"></i>
+                            <span id="scrubDeltaText">+15% vs prev day</span>
                         </div>
                     </div>
 
-                    <!-- Sales Summary Footnote -->
+                    <!-- SVG Curve Plot Area with Scrubber -->
+                    <div 
+                        id="balPlot" 
+                        class="bal-plot relative w-full select-none" 
+                        data-up="true"
+                    >
+                        <svg 
+                            id="balLineSvg" 
+                            class="bal-line w-full" 
+                            viewBox="0 0 320 100" 
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                <linearGradient id="salesGradUp" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#1f9d55" stop-opacity="0.32" />
+                                    <stop offset="100%" stop-color="#1f9d55" stop-opacity="0.0" />
+                                </linearGradient>
+                                <linearGradient id="salesGradDown" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#e5484d" stop-opacity="0.28" />
+                                    <stop offset="100%" stop-color="#e5484d" stop-opacity="0.0" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Wash fill under curve -->
+                            <path id="balAreaPath" fill="url(#salesGradUp)" d="" />
+                            <!-- Main smooth line curve -->
+                            <path id="balCurvePath" class="bal-curve" d="" />
+                        </svg>
+
+                        <!-- Vertical guide line that follows touch/mouse -->
+                        <div id="balGuide" class="bal-guide"></div>
+
+                        <!-- Scrubber tip dot resting precisely on the curve -->
+                        <div id="balTip" class="bal-tip"></div>
+                    </div>
+
+                    <!-- 7 Horizontal Day Labels Aligned With SVG Data Points -->
+                    <div class="grid grid-cols-7 text-center pt-2.5 border-t border-slate-100 text-[10px] font-bold text-[#64748b]" id="salesDaysLabels">
+                        <!-- Rendered by JS: Mon, Tue, Wed, Thu, Fri, Sat, Today -->
+                    </div>
+
+                    <!-- Bottom Highlights Row -->
                     <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10.5px]">
                         <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-[#15387C]"></span>
-                            <span class="text-slate-500 font-bold">Highest Day:</span>
+                            <span class="w-2 h-2 rounded-full bg-[#1f9d55]"></span>
+                            <span class="text-slate-500 font-bold">Peak Day:</span>
                             <span class="font-extrabold text-[#15387C]" id="chartPeakDay">--</span>
                         </div>
                         <div class="flex items-center gap-1 text-slate-500">
-                            <span>Week Total:</span>
+                            <span>7-Day Total:</span>
                             <span class="font-black text-[#15387C]" id="chart7DayTotal">PKR 0</span>
                         </div>
                     </div>
@@ -1416,12 +1495,16 @@
             }
         }
 
-        // DAILY SALES GRAPH ENGINE (CALCULATES ACTUAL SALES ACROSS DAYS)
+        // DAILY SALES HORIZONTAL LINE GRAPH ENGINE (SVG CURVE WITH UP/DOWN DAY DETECTION)
         let salesChartData = [];
+        let salesPlotPoints = [];
 
         function renderSalesChart() {
-            const container = document.getElementById('salesBarsContainer');
-            if (!container) return;
+            const plot = document.getElementById('balPlot');
+            const curvePathEl = document.getElementById('balCurvePath');
+            const areaPathEl = document.getElementById('balAreaPath');
+            const labelsContainer = document.getElementById('salesDaysLabels');
+            if (!plot || !curvePathEl || !areaPathEl) return;
 
             const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             const today = new Date();
@@ -1444,7 +1527,7 @@
                     }
                 });
 
-                // Contextual baseline to ensure realistic visual chart if history is clean
+                // Contextual baseline to ensure realistic visual curve if history is clean
                 const baselines = [15000, 25000, 20000, 35000, 30000, 45000, 0];
                 const baseline = baselines[6 - i];
                 const effectiveSales = daySales > 0 ? daySales : (isToday ? daySales : baseline);
@@ -1474,40 +1557,172 @@
             const totalEl = document.getElementById('chart7DayTotal');
             if (totalEl) totalEl.textContent = `PKR ${totalWeekSale.toLocaleString()}`;
 
-            // Render 7 bars
-            container.innerHTML = salesChartData.map((d, index) => {
-                const heightPct = Math.max(16, Math.round((d.amount / maxSale) * 88));
+            // Build 7 SVG Curve coordinates across 320x100 viewBox
+            salesPlotPoints = salesChartData.map((d, i) => {
+                const x = 20 + i * (280 / 6);
+                const ratio = Math.max(0.08, Math.min(0.96, d.amount / maxSale));
+                const y = 86 - ratio * 68;
+                return { x, y, data: d };
+            });
 
-                return `
-                    <div class="flex flex-col items-center h-full justify-end cursor-pointer group" onclick="highlightSalesChart(${index})">
-                        <div class="w-full chart-bar-bg h-full flex items-end p-0.5 group-hover:bg-[#eef3fb] transition">
-                            <div class="w-full chart-bar-fill ${d.isToday ? '!bg-[#15387C]' : ''}" style="height: ${heightPct}%;"></div>
-                        </div>
-                        <span class="text-[9.5px] ${d.isToday ? 'text-[#15387C] font-black' : 'text-[#64748b] font-bold'} mt-1.5 transition">
-                            ${d.shortLabel}
-                        </span>
-                    </div>
-                `;
-            }).join('');
+            // Smooth cubic bezier spline algorithm
+            const curveD = getSplinePath(salesPlotPoints);
+            const areaD = `${curveD} L ${salesPlotPoints[6].x},100 L ${salesPlotPoints[0].x},100 Z`;
 
-            // Highlight today (last bar) by default
-            highlightSalesChart(6);
+            curvePathEl.setAttribute('d', curveD);
+            areaPathEl.setAttribute('d', areaD);
+
+            // Render 7 Horizontal Day Labels
+            if (labelsContainer) {
+                labelsContainer.innerHTML = salesChartData.map((d, index) => `
+                    <button type="button" onclick="selectDayIndex(${index})" class="day-label-btn transition hover:text-[#15387C] py-1 cursor-pointer ${d.isToday ? 'text-[#15387C] font-black' : 'text-[#64748b]'}" id="dayLabelBtn${index}">
+                        ${d.shortLabel}
+                    </button>
+                `).join('');
+            }
+
+            // Wire pointer/touch scrubbing on the curve
+            setupPlotScrubber();
+
+            // Default select today (last point)
+            selectDayIndex(6);
         }
 
-        function highlightSalesChart(index) {
-            if (!salesChartData || !salesChartData[index]) return;
-            const item = salesChartData[index];
-            const tooltip = document.getElementById('chartTooltip');
-            if (!tooltip) return;
+        // Catmull-Rom to Cubic Bezier Path Generator
+        function getSplinePath(points) {
+            if (points.length < 2) return "";
+            let d = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+            for (let i = 0; i < points.length - 1; i++) {
+                const p0 = points[i === 0 ? i : i - 1];
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                const p3 = points[i + 2] || p2;
 
-            const dayEl = document.getElementById('tooltipDay');
-            if (dayEl) dayEl.textContent = item.fullLabel;
+                const cp1x = p1.x + (p2.x - p0.x) / 4.5;
+                const cp1y = p1.y + (p2.y - p0.y) / 4.5;
+                const cp2x = p2.x - (p3.x - p1.x) / 4.5;
+                const cp2y = p2.y - (p3.y - p1.y) / 4.5;
 
-            const valEl = document.getElementById('tooltipValue');
-            if (valEl) valEl.textContent = `PKR ${item.amount.toLocaleString()}`;
+                d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+            }
+            return d;
+        }
 
-            const positions = [7, 21, 35, 50, 64, 78, 92];
-            tooltip.style.left = `${positions[index]}%`;
+        // Interactive Day Selection & Up/Down Indicator Logic
+        function selectDayIndex(index) {
+            if (!salesChartData || !salesChartData[index] || !salesPlotPoints[index]) return;
+            const current = salesChartData[index];
+            const pt = salesPlotPoints[index];
+            const prev = index > 0 ? salesChartData[index - 1] : null;
+
+            const plot = document.getElementById('balPlot');
+            const guide = document.getElementById('balGuide');
+            const tip = document.getElementById('balTip');
+            const areaPath = document.getElementById('balAreaPath');
+            const dayLabel = document.getElementById('scrubDayLabel');
+            const amountEl = document.getElementById('scrubAmount');
+            const badge = document.getElementById('scrubDeltaBadge');
+            const deltaIcon = document.getElementById('scrubDeltaIcon');
+            const deltaText = document.getElementById('scrubDeltaText');
+
+            // 1. Position scrubber dot & vertical guide precisely on the curve
+            const leftPct = (pt.x / 320) * 100;
+            const topPct = (pt.y / 100) * 100;
+
+            if (guide) guide.style.left = `${leftPct}%`;
+            if (tip) {
+                tip.style.left = `${leftPct}%`;
+                tip.style.top = `${topPct}%`;
+            }
+
+            // 2. Set Header values
+            if (dayLabel) dayLabel.textContent = `${current.fullLabel}`;
+            if (amountEl) amountEl.textContent = `PKR ${current.amount.toLocaleString()}`;
+
+            // 3. Calculate Day-by-Day UP or DOWN indicator
+            let isUp = true;
+            let deltaVal = 0;
+            let deltaPct = 0;
+
+            if (prev) {
+                if (current.amount >= prev.amount) {
+                    isUp = true;
+                    deltaVal = current.amount - prev.amount;
+                    deltaPct = prev.amount > 0 ? Math.round((deltaVal / prev.amount) * 100) : 100;
+                } else {
+                    isUp = false;
+                    deltaVal = prev.amount - current.amount;
+                    deltaPct = prev.amount > 0 ? Math.round((deltaVal / prev.amount) * 100) : 0;
+                }
+            } else {
+                // First day in graph
+                isUp = true;
+                deltaVal = current.amount;
+                deltaPct = 0;
+            }
+
+            if (plot) plot.setAttribute('data-up', isUp ? 'true' : 'false');
+
+            if (badge && deltaIcon && deltaText) {
+                if (isUp) {
+                    badge.className = "inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 transition-all duration-200";
+                    deltaIcon.className = "fa-solid fa-arrow-trend-up text-[10px]";
+                    deltaText.textContent = prev ? `+PKR ${deltaVal.toLocaleString()} (+${deltaPct}%)` : `Baseline Day`;
+                    if (areaPath) areaPath.setAttribute('fill', 'url(#salesGradUp)');
+                } else {
+                    badge.className = "inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl bg-red-50 text-red-700 border border-red-200 transition-all duration-200";
+                    deltaIcon.className = "fa-solid fa-arrow-trend-down text-[10px]";
+                    deltaText.textContent = `-PKR ${deltaVal.toLocaleString()} (-${deltaPct}%)`;
+                    if (areaPath) areaPath.setAttribute('fill', 'url(#salesGradDown)');
+                }
+            }
+
+            // 4. Highlight current day label in horizontal row
+            document.querySelectorAll('.day-label-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.className = `day-label-btn transition font-black py-1 cursor-pointer scale-110 ${isUp ? 'text-emerald-700' : 'text-red-600'}`;
+                } else {
+                    btn.className = `day-label-btn transition hover:text-[#15387C] py-1 cursor-pointer text-[#64748b] font-medium`;
+                }
+            });
+        }
+
+        // Attach touch/mouse scrubber listener
+        let isScrubbingListenerAttached = false;
+        function setupPlotScrubber() {
+            if (isScrubbingListenerAttached) return;
+            const plot = document.getElementById('balPlot');
+            if (!plot) return;
+
+            function scrub(e) {
+                const rect = plot.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                const relX = Math.max(0, Math.min(rect.width, clientX - rect.left));
+                const pct = relX / rect.width;
+                const idx = Math.max(0, Math.min(6, Math.round(pct * 6)));
+                selectDayIndex(idx);
+            }
+
+            plot.addEventListener('pointermove', (e) => {
+                plot.classList.add('is-scrubbing');
+                scrub(e);
+            });
+
+            plot.addEventListener('pointerdown', (e) => {
+                plot.classList.add('is-scrubbing');
+                scrub(e);
+            });
+
+            plot.addEventListener('pointerleave', () => {
+                plot.classList.remove('is-scrubbing');
+                selectDayIndex(6); // Settle back on today
+            });
+
+            plot.addEventListener('pointerup', () => {
+                plot.classList.remove('is-scrubbing');
+            });
+
+            isScrubbingListenerAttached = true;
         }
 
         // HELPERS
