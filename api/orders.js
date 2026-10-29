@@ -38,8 +38,8 @@ export default function handler(req, res) {
                 cylinderType: body.cylinderType || 'Domestic Cylinder (10 Kg)',
                 cylinderCode: body.cylinderCode || 'domestic', // domestic or commercial
                 quantity: Number(body.quantity) || 1,
-                pricePerUnit: Number(body.pricePerUnit) || (body.cylinderCode === 'commercial' ? 12500 : 3000),
-                totalPrice: Number(body.totalPrice) || ((Number(body.quantity) || 1) * (body.cylinderCode === 'commercial' ? 12500 : 3000)),
+                pricePerUnit: Number(body.pricePerUnit) || (body.cylinderCode === 'commercial' ? 10000 : 5000),
+                totalPrice: Number(body.totalPrice) || ((Number(body.quantity) || 1) * (body.cylinderCode === 'commercial' ? 10000 : 5000)),
                 deliveryTime: body.deliveryTime || 'As Soon As Possible', // 'As Soon As Possible' or 'Within 24 Hours'
                 deliverySchedule: body.deliverySchedule || 'today', // 'today' or 'tomorrow'
                 paymentMethod: body.paymentMethod || 'Cash on Delivery (COD)',

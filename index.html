@@ -266,11 +266,12 @@
                     </div>
                 </div>
 
-                <!-- Bottom Controls (Quantity + WhatsApp / Book Order) -->
+                <!-- Bottom Controls (Quantity + Order Now Button) -->
                 <div class="pt-3 mt-2 border-t border-[#cbd7eb]">
                     <div class="flex items-center justify-between mb-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-[#15387C] font-bold">Select Quantity:</span>
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 5,000</span>
+                            <span class="text-[10px] text-slate-500 font-bold">/ cylinder</span>
                         </div>
 
                         <!-- Quantity Selector -->
@@ -339,8 +340,9 @@
                 <!-- Bottom Controls (Quantity + Order Now Button) -->
                 <div class="pt-3 mt-2 border-t border-[#f8d294]">
                     <div class="flex items-center justify-between mb-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-[#15387C] font-bold">Select Quantity:</span>
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="text-base sm:text-lg font-black text-[#F6AD3A] font-display">PKR 10,000</span>
+                            <span class="text-[10px] text-slate-500 font-bold">/ cylinder</span>
                         </div>
 
                         <!-- Quantity Selector -->
@@ -740,9 +742,11 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
             const isDomestic = (type === 'domestic');
             const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
+            const unitPrice = isDomestic ? 5000 : 10000;
+            const totalBill = qty * unitPrice;
 
             document.getElementById('modalSelectedName').textContent = itemName;
-            document.getElementById('modalSelectedQty').textContent = `${qty} Cylinder(s)`;
+            document.getElementById('modalSelectedQty').textContent = `${qty} Cyl (PKR ${totalBill.toLocaleString()})`;
 
             const modalSelect = document.getElementById('custArea');
             if (modalSelect) modalSelect.value = state.selectedArea;
@@ -784,6 +788,8 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
             const isDomestic = (state.selectedType === 'domestic');
             const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
+            const unitPrice = isDomestic ? 5000 : 10000;
+            const totalBill = qty * unitPrice;
 
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
@@ -791,10 +797,10 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
             const address = document.getElementById('custAddress').value.trim();
 
             const deliveryTimeRadio = document.querySelector('input[name="deliveryTime"]:checked');
-            const deliveryTime = deliveryTimeRadio ? deliveryTimeRadio.value : "ASAP";
+            const deliveryTime = deliveryTimeRadio ? deliveryTimeRadio.value : "As Soon As Possible";
 
             const paymentMethodRadio = document.querySelector('input[name="paymentMethod"]:checked');
-            const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : "Cash on Delivery";
+            const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : "Cash on Delivery (COD)";
 
             if (!name) {
                 alert("Please enter customer or business name.");
@@ -824,6 +830,8 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
 ----------------------------------------
 *ORDER ITEMS:*
 • ${itemName} x ${qty} Cylinder(s)
+*Unit Price:* PKR ${unitPrice.toLocaleString()}/-
+*Total Amount:* PKR ${totalBill.toLocaleString()}/-
 ========================================`;
 
             if (paymentMethod.includes('Bank Transfer')) {
@@ -842,8 +850,6 @@ IBAN: ${CONFIG.iban}
             try {
                 const orderId = 'MBX-' + Math.floor(100000 + Math.random() * 900000);
                 const cylinderCode = isDomestic ? 'domestic' : 'commercial';
-                const pricePerUnit = cylinderCode === 'commercial' ? 12500 : 3000;
-                const totalPrice = qty * pricePerUnit;
                 const deliverySchedule = deliveryTime.toLowerCase().includes('24') ? 'tomorrow' : 'today';
 
                 const newOrderRecord = {
@@ -855,8 +861,8 @@ IBAN: ${CONFIG.iban}
                     cylinderType: itemName,
                     cylinderCode: cylinderCode,
                     quantity: qty,
-                    pricePerUnit: pricePerUnit,
-                    totalPrice: totalPrice,
+                    pricePerUnit: unitPrice,
+                    totalPrice: totalBill,
                     deliveryTime: deliveryTime,
                     deliverySchedule: deliverySchedule,
                     paymentMethod: paymentMethod,

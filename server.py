@@ -79,7 +79,7 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
             new_id = body.get('id') or f"MBX-{int(datetime.now().timestamp() * 1000) % 1000000}"
             cylinder_code = body.get('cylinderCode', 'domestic')
             quantity = int(body.get('quantity', 1))
-            unit_price = int(body.get('pricePerUnit', 12500 if cylinder_code == 'commercial' else 3000))
+            unit_price = int(body.get('pricePerUnit', 10000 if cylinder_code == 'commercial' else 5000))
             total_price = int(body.get('totalPrice', quantity * unit_price))
 
             order = {
