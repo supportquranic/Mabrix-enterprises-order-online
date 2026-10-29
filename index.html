@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mabrix Enterprises | 10 Kg & 45 Kg LPG Gas Cylinders</title>
+    <meta name="description" content="Mabrix Enterprises - Express LPG Gas delivery in Bahria Town, Lake City, Khyaban-e-Amin, Wapda Town, Valencia Town & nearby areas. Order 10 Kg & 45 Kg cylinders now!">
+    
+    <!-- Satoshi Font (Fontshare) -->
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400,300&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#15387C',
+                            blueDark: '#0f295b',
+                            blueLight: '#eef3fb',
+                            blueBorder: '#cbd7eb',
+                            gold: '#F6AD3A',
+                            goldHover: '#e09a2b',
+                            goldLight: '#fef7ec',
+                            goldBorder: '#f8d294',
+                            dark: '#0f172a',
+                            muted: '#475569'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Satoshi', 'sans-serif'],
+                        display: ['Satoshi', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(21, 56, 124, 0.08)',
+                        'card-blue': '0 8px 30px rgba(21, 56, 124, 0.10)',
+                        'card-gold': '0 8px 30px rgba(246, 173, 58, 0.14)',
+                        'modal': '0 25px 60px -15px rgba(15, 23, 42, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Satoshi', sans-serif;
+            color: #0f172a;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", sans-serif !important;
+        }
+        .fa-brands {
+            font-family: "Font Awesome 6 Brands" !important;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 50px rgba(21, 56, 124, 0.1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        @media (min-width: 1024px) {
+            .app-wrapper {
+                max-width: 500px;
+            }
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1.5px solid #e2e8f0;
+        }
+
+        /* 2 Big Cards - UNIFORM 2px BORDER FROM ALL SIDES */
+        .big-lpg-card {
+            border-radius: 24px;
+            transition: all 0.25s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-domestic {
+            background: linear-gradient(170deg, #ffffff 0%, #f4f7fc 100%);
+            border: 2px solid #15387C;
+        }
+
+        .card-commercial {
+            background: linear-gradient(170deg, #ffffff 0%, #fef9f0 100%);
+            border: 2px solid #F6AD3A;
+        }
+
+        .big-lpg-card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Hide scrollbars */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="selection:bg-[#15387C] selection:text-white">
+
+    <div class="app-wrapper flex flex-col justify-between">
+        
+        <!-- TOP STICKY HEADER (WITHOUT LOGO ICON) -->
+        <header class="sticky top-0 z-40 glass-header px-4 pt-3 pb-2.5">
+            <div class="flex items-center justify-between gap-3">
+                <!-- Brand Info (No Logo Icon) -->
+                <div>
+                    <h1 class="font-display font-black text-xl sm:text-2xl text-[#15387C] tracking-tight uppercase leading-none">
+                        MABRIX ENTERPRISES
+                    </h1>
+                    <p class="text-[11.5px] text-[#475569] font-bold flex items-center gap-1.5 mt-1">
+                        <span class="w-2 h-2 rounded-full bg-[#F6AD3A] animate-pulse"></span>
+                        <span class="text-[#15387C]">LPG Gas Supply & Express Delivery</span>
+                    </p>
+                </div>
+
+                <!-- Quick Actions (Call & WhatsApp 0332 4499022) -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <!-- Call Hotline -->
+                    <a href="tel:03324499022" id="headerCallBtn" title="Call 0332 4499022" class="w-9 h-9 rounded-xl bg-[#eef3fb] hover:bg-[#dce6f7] border border-[#cbd7eb] text-[#15387C] flex items-center justify-center text-sm shadow-sm active:scale-95 transition">
+                        <i class="fa-solid fa-phone"></i>
+                    </a>
+                    <!-- Direct WhatsApp -->
+                    <a href="https://wa.me/923324499022" id="headerWhatsAppBtn" target="_blank" title="WhatsApp 0332 4499022" class="w-9 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-base shadow-md active:scale-95 transition">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- CUSTOM AREA DROPDOWN (BAHRIA TOWN, LAKE CITY, KHYABAN-E-AMIN, WAPDA TOWN, VALENCIA TOWN, NEARBY) -->
+            <div class="relative mt-2.5" id="areaDropdownContainer">
+                <button 
+                    id="areaDropdownBtn" 
+                    type="button"
+                    onclick="toggleAreaDropdown()" 
+                    class="w-full bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] hover:border-[#15387C] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-bold text-[#15387C] transition shadow-sm"
+                >
+                    <div class="flex items-center gap-2">
+                        <span class="bg-[#15387C] text-[#F6AD3A] text-[9.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-location-dot"></i> Area
+                        </span>
+                        <span id="selectedAreaText" class="text-[#15387C] font-black text-xs">
+                            Bahria Town
+                        </span>
+                        <span class="text-[10px] text-emerald-600 font-semibold">• Express Delivery</span>
+                    </div>
+                    <i id="areaDropdownIcon" class="fa-solid fa-chevron-down text-[#15387C] text-[11px] transition-transform duration-200"></i>
+                </button>
+
+                <!-- Dropdown List -->
+                <div 
+                    id="areaDropdownMenu" 
+                    class="hidden absolute top-full left-0 right-0 mt-1.5 bg-white border-2 border-[#15387C] rounded-2xl shadow-xl z-50 overflow-hidden divide-y divide-slate-100 transition-all duration-200"
+                >
+                    <div class="p-2 bg-[#f8fafc] text-[10px] uppercase font-black text-[#64748b] tracking-wider flex justify-between items-center">
+                        <span>Select Delivery Area</span>
+                        <span class="text-[#15387C]">0332 4499022</span>
+                    </div>
+                    <div class="py-1 max-h-56 overflow-y-auto no-scrollbar">
+                        <button onclick="selectAreaOption('Bahria Town')" class="area-item w-full px-3.5 py-2 text-left text-xs font-bold text-slate-800 hover:bg-[#eef3fb] hover:text-[#15387C] flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-map-pin text-[#15387C] text-[10px]"></i> Bahria Town</span>
+                            <i class="fa-solid fa-check text-emerald-600 text-xs check-icon"></i>
+                        </button>
+                        <button onclick="selectAreaOption('Lake City')" class="area-item w-full px-3.5 py-2 text-left text-xs font-bold text-slate-800 hover:bg-[#eef3fb] hover:text-[#15387C] flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-map-pin text-[#15387C] text-[10px]"></i> Lake City</span>
+                            <i class="fa-solid fa-check text-emerald-600 text-xs check-icon hidden"></i>
+                        </button>
+                        <button onclick="selectAreaOption('Khyaban-e-Amin')" class="area-item w-full px-3.5 py-2 text-left text-xs font-bold text-slate-800 hover:bg-[#eef3fb] hover:text-[#15387C] flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-map-pin text-[#15387C] text-[10px]"></i> Khyaban-e-Amin</span>
+                            <i class="fa-solid fa-check text-emerald-600 text-xs check-icon hidden"></i>
+                        </button>
+                        <button onclick="selectAreaOption('Wapda Town')" class="area-item w-full px-3.5 py-2 text-left text-xs font-bold text-slate-800 hover:bg-[#eef3fb] hover:text-[#15387C] flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-map-pin text-[#15387C] text-[10px]"></i> Wapda Town</span>
+                            <i class="fa-solid fa-check text-emerald-600 text-xs check-icon hidden"></i>
+                        </button>
+                        <button onclick="selectAreaOption('Valencia Town')" class="area-item w-full px-3.5 py-2 text-left text-xs font-bold text-slate-800 hover:bg-[#eef3fb] hover:text-[#15387C] flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-map-pin text-[#15387C] text-[10px]"></i> Valencia Town</span>
+                            <i class="fa-solid fa-check text-emerald-600 text-xs check-icon hidden"></i>
+                        </button>
+                        <button onclick="selectAreaOption('Nearby Areas')" class="area-item w-full px-3.5 py-2 text-left text-xs font-bold text-slate-800 hover:bg-[#eef3fb] hover:text-[#15387C] flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-map-pin text-[#F6AD3A] text-[10px]"></i> Nearby Areas</span>
+                            <i class="fa-solid fa-check text-emerald-600 text-xs check-icon hidden"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN 2 BIG CARDS (WITHOUT PILLS, BOLD TITLES, UNIFORM BORDERS) -->
+        <main class="flex-1 px-3.5 py-2.5 flex flex-col justify-between gap-3" id="mainCardsContainer">
+            
+            <!-- CARD 1: DOMESTIC CYLINDER 10 KG -->
+            <div class="big-lpg-card card-domestic flex-1 p-4 sm:p-5 flex flex-col justify-between shadow-card-blue" id="cardDomestic">
+                <div>
+                    <!-- Title & Weight (No Pills, Bold Title) -->
+                    <div class="flex items-baseline justify-between pt-1">
+                        <div>
+                            <h2 class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight leading-none">
+                                Domestic Cylinder
+                            </h2>
+                            <p class="text-[12px] text-[#475569] font-medium mt-1.5">
+                                Ideal for Homes, Kitchens, Heaters & Domestic Stoves
+                            </p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-2xl sm:text-3xl font-black text-[#15387C] font-display leading-none">10 Kg</span>
+                            <span class="text-[10px] text-[#64748b] block font-bold uppercase">Net Weight</span>
+                        </div>
+                    </div>
+
+                    <!-- Highlights & Specs -->
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
+                        <div class="bg-white border border-[#cbd7eb] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-sm">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Safety</span>
+                                <span class="text-[#0f172a] font-bold text-xs truncate block">Sealed & Tested</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-[#cbd7eb] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-sm">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Delivery</span>
+                                <span class="text-[#0f172a] font-bold text-xs truncate block">Doorstep Express</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Controls (Quantity + WhatsApp / Book Order) -->
+                <div class="pt-3 mt-2 border-t border-[#cbd7eb]">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-[#15387C] font-bold">Select Quantity:</span>
+                        </div>
+
+                        <!-- Quantity Selector -->
+                        <div class="flex items-center bg-white rounded-xl border-2 border-[#15387C] p-0.5 shadow-sm">
+                            <button onclick="updateQty('domestic', -1)" class="w-7 h-7 rounded-lg bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Decrease">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <span id="qtyDisplayDomestic" class="w-8 text-center font-black text-sm text-[#15387C]">1</span>
+                            <button onclick="updateQty('domestic', 1)" class="w-7 h-7 rounded-lg bg-[#15387C] text-white flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Increase">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Button: Order Now (Opens Form Filling) -->
+                    <button onclick="openBookingModal('domestic')" class="w-full bg-[#15387C] hover:bg-[#0f295b] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition">
+                        <span>Order Now</span>
+                        <i class="fa-solid fa-arrow-right text-xs text-[#F6AD3A]"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CARD 2: COMMERCIAL CYLINDER 45 KG -->
+            <div class="big-lpg-card card-commercial flex-1 p-4 sm:p-5 flex flex-col justify-between shadow-card-gold" id="cardCommercial">
+                <div>
+                    <!-- Title & Weight (No Pills, Bold Title) -->
+                    <div class="flex items-baseline justify-between pt-1">
+                        <div>
+                            <h2 class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight leading-none">
+                                Commercial Cylinder
+                            </h2>
+                            <p class="text-[12px] text-[#475569] font-medium mt-1.5">
+                                High Output for Restaurants, Hotels, Cafes & Industrial Units
+                            </p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-2xl sm:text-3xl font-black text-[#F6AD3A] font-display leading-none">45 Kg</span>
+                            <span class="text-[10px] text-[#64748b] block font-bold uppercase">Net Weight</span>
+                        </div>
+                    </div>
+
+                    <!-- Highlights & Specs -->
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
+                        <div class="bg-white border border-[#f8d294] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-sm">
+                                <i class="fa-solid fa-gauge-high"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Pressure</span>
+                                <span class="text-[#0f172a] font-bold text-xs truncate block">High Flow Flame</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-[#f8d294] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-sm">
+                                <i class="fa-solid fa-truck-ramp-box"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Bulk Supply</span>
+                                <span class="text-[#0f172a] font-bold text-xs truncate block">Priority Transport</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Controls (Quantity + Order Now Button) -->
+                <div class="pt-3 mt-2 border-t border-[#f8d294]">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-[#15387C] font-bold">Select Quantity:</span>
+                        </div>
+
+                        <!-- Quantity Selector -->
+                        <div class="flex items-center bg-white rounded-xl border-2 border-[#F6AD3A] p-0.5 shadow-sm">
+                            <button onclick="updateQty('commercial', -1)" class="w-7 h-7 rounded-lg bg-[#fef7ec] hover:bg-[#fdeed6] text-[#F6AD3A] flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Decrease">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <span id="qtyDisplayCommercial" class="w-8 text-center font-black text-sm text-[#15387C]">1</span>
+                            <button onclick="updateQty('commercial', 1)" class="w-7 h-7 rounded-lg bg-[#F6AD3A] hover:bg-[#e09a2b] text-white flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Increase">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Button: Order Now (Opens Form Filling) -->
+                    <button onclick="openBookingModal('commercial')" class="w-full bg-[#F6AD3A] hover:bg-[#e09a2b] text-[#15387C] font-black text-sm py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition">
+                        <span>Order Now</span>
+                        <i class="fa-solid fa-arrow-right text-xs text-[#15387C]"></i>
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER WITH DESIGNED BY TALHA MUZAMMIL (WITH WHATSAPP 03294355677) -->
+        <footer class="px-4 py-3 bg-[#ffffff] border-t border-[#e2e8f0] text-center text-xs">
+            <!-- Designed by Talha Muzammil with WhatsApp button -->
+            <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                <span>Designed by</span>
+                <a 
+                    href="https://wa.me/923294355677" 
+                    target="_blank" 
+                    title="Chat with Talha Muzammil on WhatsApp (03294355677)"
+                    class="inline-flex items-center gap-1.5 bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] font-black px-2.5 py-0.5 rounded-md border border-[#cbd7eb] shadow-sm active:scale-95 transition"
+                >
+                    <i class="fa-brands fa-whatsapp text-[#25D366] text-xs"></i>
+                    <span>Talha Muzammil</span>
+                </a>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- COMPLETE ORDER & BOOKING MODAL -->
+    <div id="bookingModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-0 sm:p-4">
+        <div class="w-full max-w-[480px] bg-white border border-[#cbd7eb] rounded-t-[30px] sm:rounded-3xl max-h-[92vh] flex flex-col shadow-modal transform translate-y-full transition-transform duration-300" id="bookingModalCard">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-[#e2e8f0] flex items-center justify-between bg-[#f8fafc] rounded-t-[30px] sm:rounded-t-3xl">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-[#15387C] text-[#F6AD3A] flex items-center justify-center text-base shadow-sm">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-black text-base text-[#15387C]">LPG Delivery Booking</h3>
+                        <span class="text-[11px] text-[#64748b] font-medium">Mabrix Enterprises • 0332 4499022</span>
+                    </div>
+                </div>
+                <button onclick="closeBookingModal()" class="w-8 h-8 rounded-full bg-[#f1f5f9] hover:bg-[#e2e8f0] text-slate-700 flex items-center justify-center transition border border-[#cbd7eb]">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable inputs) -->
+            <div class="p-4 overflow-y-auto space-y-3 text-xs no-scrollbar flex-1 bg-white">
+                
+                <!-- Order Summary Badge -->
+                <div class="bg-[#eef3fb] rounded-2xl p-3 border border-[#cbd7eb] flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] text-[#64748b] uppercase font-bold block">Selected Cylinder</span>
+                        <span class="text-[#15387C] font-extrabold text-sm" id="modalSelectedName">Domestic Cylinder (10 Kg)</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-[#64748b] uppercase font-bold block">Quantity</span>
+                        <span class="text-[#F6AD3A] bg-[#15387C] px-2 py-0.5 rounded-lg font-black text-xs inline-block" id="modalSelectedQty">1 Cylinder</span>
+                    </div>
+                </div>
+
+                <!-- Customer Name -->
+                <div>
+                    <label class="block text-[#0f172a] font-bold mb-1">
+                        Customer Name / Business <span class="text-[#15387C]">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="custName" 
+                        placeholder="e.g. Muhammad Ali / Cafe Name" 
+                        class="w-full bg-[#f8fafc] text-slate-900 placeholder-slate-400 px-3 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C] focus:ring-1 focus:ring-[#15387C]"
+                    >
+                </div>
+
+                <!-- Contact Phone -->
+                <div>
+                    <label class="block text-[#0f172a] font-bold mb-1">
+                        Contact Phone Number <span class="text-[#15387C]">*</span>
+                    </label>
+                    <input 
+                        type="tel" 
+                        id="custPhone" 
+                        placeholder="e.g. 0332 1234567" 
+                        class="w-full bg-[#f8fafc] text-slate-900 placeholder-slate-400 px-3 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C] focus:ring-1 focus:ring-[#15387C]"
+                    >
+                </div>
+
+                <!-- Delivery Area Selector -->
+                <div>
+                    <label class="block text-[#0f172a] font-bold mb-1">
+                        Delivery Area <span class="text-[#15387C]">*</span>
+                    </label>
+                    <select 
+                        id="custArea" 
+                        class="w-full bg-[#f8fafc] text-slate-900 px-3 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C] focus:ring-1 focus:ring-[#15387C]"
+                    >
+                        <option value="Bahria Town">Bahria Town</option>
+                        <option value="Lake City">Lake City</option>
+                        <option value="Khyaban-e-Amin">Khyaban-e-Amin</option>
+                        <option value="Wapda Town">Wapda Town</option>
+                        <option value="Valencia Town">Valencia Town</option>
+                        <option value="Nearby Areas">Nearby Areas (Specify in address)</option>
+                    </select>
+                </div>
+
+                <!-- Full Delivery Address -->
+                <div>
+                    <label class="block text-[#0f172a] font-bold mb-1">
+                        Full Customer Address & Landmark <span class="text-[#15387C]">*</span>
+                    </label>
+                    <textarea 
+                        id="custAddress" 
+                        rows="2" 
+                        placeholder="House / Shop #, Street #, Sector / Block, Landmark" 
+                        class="w-full bg-[#f8fafc] text-slate-900 placeholder-slate-400 px-3 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C] focus:ring-1 focus:ring-[#15387C]"
+                    ></textarea>
+                </div>
+
+                <!-- Time of Delivery (Keep only Urgent / ASAP and Within 1-2 Hours) -->
+                <div>
+                    <label class="block text-[#0f172a] font-bold mb-1">
+                        Preferred Time of Delivery <span class="text-[#15387C]">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <label class="flex items-center gap-2 bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb] cursor-pointer hover:border-[#15387C]">
+                            <input type="radio" name="deliveryTime" value="Urgent / ASAP (Express)" checked class="accent-[#15387C]">
+                            <span class="text-[#15387C] font-bold">Urgent / ASAP</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb] cursor-pointer hover:border-[#15387C]">
+                            <input type="radio" name="deliveryTime" value="Within 1 - 2 Hours" class="accent-[#15387C]">
+                            <span class="text-slate-700 font-bold">Within 1-2 Hours</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Payment Method (COD vs Bank Transfer) -->
+                <div>
+                    <label class="block text-[#0f172a] font-bold mb-1">
+                        Payment Method <span class="text-[#15387C]">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2 text-[11px] mb-2">
+                        <label class="flex items-center gap-2 bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb] cursor-pointer hover:border-[#15387C]">
+                            <input type="radio" name="paymentMethod" value="Cash on Delivery (COD)" checked onchange="toggleBankBox(false)" class="accent-[#15387C]">
+                            <span class="text-[#15387C] font-bold">Cash on Delivery</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb] cursor-pointer hover:border-[#15387C]">
+                            <input type="radio" name="paymentMethod" value="Bank Transfer (Askari Bank Ltd)" onchange="toggleBankBox(true)" class="accent-[#15387C]">
+                            <span class="text-[#15387C] font-bold">Bank Transfer</span>
+                        </label>
+                    </div>
+
+                    <!-- Askari Bank details box -->
+                    <div id="modalBankDetailsBox" class="bg-[#fef7ec] border border-[#f8d294] rounded-2xl p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#15387C] font-black text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-building-columns text-[#F6AD3A]"></i> Askari Bank Ltd
+                            </span>
+                            <span class="text-[10px] bg-[#15387C] text-white font-bold px-2 py-0.5 rounded">Mabrix Enterprises</span>
+                        </div>
+
+                        <!-- Account Title -->
+                        <div class="text-[11px] text-slate-700">
+                            <span class="text-slate-500">Account Title:</span> <strong>Mabrix Enterprises</strong>
+                        </div>
+
+                        <!-- Account Number with Copy -->
+                        <div class="flex items-center justify-between bg-white p-2 rounded-xl border border-[#f8d294]">
+                            <div>
+                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block">Account Number</span>
+                                <span class="font-mono text-[#15387C] font-black text-xs" id="accNumberVal">03860200003622</span>
+                            </div>
+                            <button onclick="copyToClipboard('03860200003622', 'Account Number copied!')" class="px-2.5 py-1 bg-[#15387C] hover:bg-[#0f295b] text-white rounded-lg text-[10px] font-bold active:scale-95 transition">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+
+                        <!-- IBAN with Copy -->
+                        <div class="flex items-center justify-between bg-white p-2 rounded-xl border border-[#f8d294]">
+                            <div class="min-w-0 pr-2">
+                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block">IBAN</span>
+                                <span class="font-mono text-slate-800 font-bold text-[10.5px] truncate block" id="ibanVal">PK57ASCM0003860200003622</span>
+                            </div>
+                            <button onclick="copyToClipboard('PK57ASCM0003860200003622', 'IBAN copied!')" class="px-2.5 py-1 bg-[#15387C] hover:bg-[#0f295b] text-white rounded-lg text-[10px] font-bold shrink-0 active:scale-95 transition">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+
+                        <p class="text-[9.5px] text-slate-500 italic">
+                            * For Bank Transfer, please send screenshot of payment on WhatsApp after placing order.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer (Send via WhatsApp) -->
+            <div class="p-4 border-t border-[#e2e8f0] bg-[#f8fafc] rounded-b-[30px] sm:rounded-b-3xl">
+                <button 
+                    onclick="submitOrderToWhatsApp()" 
+                    class="w-full bg-[#15387C] hover:bg-[#0f295b] text-white font-black text-sm py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition"
+                >
+                    <i class="fa-brands fa-whatsapp text-xl text-[#F6AD3A]"></i>
+                    <span>Send Order to WhatsApp (0332 4499022)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STANDALONE BANK DETAILS MODAL -->
+    <div id="bankModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+        <div class="w-full max-w-sm bg-white border-2 border-[#15387C] rounded-3xl p-5 shadow-modal transform scale-95 transition-all duration-300" id="bankModalCard">
+            <div class="flex items-center justify-between mb-3 border-b border-[#e2e8f0] pb-2.5">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-[#15387C] text-[#F6AD3A] flex items-center justify-center text-sm shadow-sm">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-display font-black text-sm text-[#15387C]">Askari Bank Ltd</h4>
+                        <span class="text-[10px] text-slate-500 font-medium">Official Payment Details</span>
+                    </div>
+                </div>
+                <button onclick="closeBankDetailsModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+                <div class="bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb]">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold block">Account Title</span>
+                    <span class="text-[#15387C] font-black text-sm">Mabrix Enterprises</span>
+                </div>
+
+                <div class="flex items-center justify-between bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb]">
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Account Number</span>
+                        <span class="font-mono text-[#15387C] font-black text-sm">03860200003622</span>
+                    </div>
+                    <button onclick="copyToClipboard('03860200003622', 'Account Number copied!')" class="px-3 py-1 bg-[#15387C] hover:bg-[#0f295b] text-white rounded-lg text-xs font-bold shadow-sm">
+                        Copy
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between bg-[#f8fafc] p-2.5 rounded-xl border border-[#cbd7eb]">
+                    <div class="min-w-0 pr-2">
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">IBAN</span>
+                        <span class="font-mono text-slate-800 font-bold text-xs truncate block">PK57ASCM0003860200003622</span>
+                    </div>
+                    <button onclick="copyToClipboard('PK57ASCM0003860200003622', 'IBAN copied!')" class="px-3 py-1 bg-[#15387C] hover:bg-[#0f295b] text-white rounded-lg text-xs font-bold shadow-sm shrink-0">
+                        Copy
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="closeBankDetailsModal()" class="w-full mt-4 bg-[#15387C] hover:bg-[#0f295b] text-white text-xs font-bold py-2.5 rounded-xl shadow-md">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#15387C] text-white text-xs font-black px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 transform -translate-y-16 opacity-0 transition-all duration-300 pointer-events-none border border-[#F6AD3A]">
+        <i class="fa-solid fa-circle-check text-[#F6AD3A]"></i>
+        <span id="toastMsg">Updated!</span>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // MABRIX ENTERPRISES CONFIGURATION
+        const CONFIG = {
+            companyName: "Mabrix Enterprises",
+            phoneDisplay: "0332 4499022",
+            phoneRaw: "03324499022",
+            whatsappNumber: "923324499022",
+            bankName: "Askari Bank Ltd",
+            accountTitle: "Mabrix Enterprises",
+            accountNumber: "03860200003622",
+            iban: "PK57ASCM0003860200003622"
+        };
+
+        // State
+        const state = {
+            domesticQty: 1,
+            commercialQty: 1,
+            selectedType: 'domestic',
+            selectedArea: 'Bahria Town'
+        };
+
+        // CUSTOM AREA DROPDOWN TOGGLE & SELECT
+        function toggleAreaDropdown() {
+            const menu = document.getElementById('areaDropdownMenu');
+            const icon = document.getElementById('areaDropdownIcon');
+            const isHidden = menu.classList.contains('hidden');
+            
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                menu.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function selectAreaOption(areaName) {
+            state.selectedArea = areaName;
+            document.getElementById('selectedAreaText').textContent = areaName;
+            
+            // Sync with modal select
+            const modalSelect = document.getElementById('custArea');
+            if (modalSelect) {
+                modalSelect.value = areaName;
+            }
+
+            // Update checkmarks
+            document.querySelectorAll('.area-item').forEach(item => {
+                const check = item.querySelector('.check-icon');
+                if (item.textContent.includes(areaName)) {
+                    if (check) check.classList.remove('hidden');
+                } else {
+                    if (check) check.classList.add('hidden');
+                }
+            });
+
+            toggleAreaDropdown();
+            showToast(`Selected Area: ${areaName}`);
+        }
+
+        // Close dropdown when clicked outside
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('areaDropdownContainer');
+            if (container && !container.contains(e.target)) {
+                const menu = document.getElementById('areaDropdownMenu');
+                const icon = document.getElementById('areaDropdownIcon');
+                if (menu && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+
+        // Update quantity
+        function updateQty(type, change) {
+            if (type === 'domestic') {
+                state.domesticQty = Math.max(1, state.domesticQty + change);
+                document.getElementById('qtyDisplayDomestic').textContent = state.domesticQty;
+                showToast(`Domestic 10 Kg Qty: ${state.domesticQty}`);
+            } else {
+                state.commercialQty = Math.max(1, state.commercialQty + change);
+                document.getElementById('qtyDisplayCommercial').textContent = state.commercialQty;
+                showToast(`Commercial 45 Kg Qty: ${state.commercialQty}`);
+            }
+        }
+
+        // Quick WhatsApp Order
+        function quickOrderWhatsApp(type) {
+            const isDomestic = (type === 'domestic');
+            const itemName = isDomestic ? "Domestic LPG Cylinder (10 Kg)" : "Commercial LPG Cylinder (45 Kg)";
+            const qty = isDomestic ? state.domesticQty : state.commercialQty;
+
+            const text = 
+`*NEW LPG ORDER - MABRIX ENTERPRISES*
+----------------------------------------
+*Item:* ${itemName}
+*Quantity:* ${qty} Cylinder(s)
+*Delivery Area:* ${state.selectedArea}
+*Hotline:* 0332 4499022
+----------------------------------------
+Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemName}* for *${state.selectedArea}*. Please confirm delivery schedule.`;
+
+            const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Open detailed booking modal
+        function openBookingModal(type) {
+            state.selectedType = type;
+            const isDomestic = (type === 'domestic');
+            const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
+            const qty = isDomestic ? state.domesticQty : state.commercialQty;
+
+            document.getElementById('modalSelectedName').textContent = itemName;
+            document.getElementById('modalSelectedQty').textContent = `${qty} Cylinder(s)`;
+
+            const modalSelect = document.getElementById('custArea');
+            if (modalSelect) modalSelect.value = state.selectedArea;
+
+            const modal = document.getElementById('bookingModal');
+            const card = document.getElementById('bookingModalCard');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('translate-y-full');
+        }
+
+        function closeBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            const card = document.getElementById('bookingModalCard');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            card.classList.add('translate-y-full');
+        }
+
+        function toggleBankBox(show) {
+            // Box remains accessible
+        }
+
+        // Standalone Bank Modal
+        function openBankDetailsModal() {
+            const modal = document.getElementById('bankModal');
+            const card = document.getElementById('bankModalCard');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-95');
+        }
+
+        function closeBankDetailsModal() {
+            const modal = document.getElementById('bankModal');
+            const card = document.getElementById('bankModalCard');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            card.classList.add('scale-95');
+        }
+
+        // Submit complete order to WhatsApp
+        function submitOrderToWhatsApp() {
+            const isDomestic = (state.selectedType === 'domestic');
+            const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
+            const qty = isDomestic ? state.domesticQty : state.commercialQty;
+
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const area = document.getElementById('custArea').value;
+            const address = document.getElementById('custAddress').value.trim();
+
+            const deliveryTimeRadio = document.querySelector('input[name="deliveryTime"]:checked');
+            const deliveryTime = deliveryTimeRadio ? deliveryTimeRadio.value : "ASAP";
+
+            const paymentMethodRadio = document.querySelector('input[name="paymentMethod"]:checked');
+            const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : "Cash on Delivery";
+
+            if (!name) {
+                alert("Please enter customer or business name.");
+                document.getElementById('custName').focus();
+                return;
+            }
+            if (!phone) {
+                alert("Please enter customer phone number.");
+                document.getElementById('custPhone').focus();
+                return;
+            }
+            if (!address) {
+                alert("Please enter full delivery address.");
+                document.getElementById('custAddress').focus();
+                return;
+            }
+
+            let text = 
+`*NEW LPG ORDER - MABRIX ENTERPRISES*
+========================================
+*Customer Name:* ${name}
+*Contact Phone:* ${phone}
+*Delivery Area:* ${area}
+*Delivery Address:* ${address}
+*Preferred Time:* ${deliveryTime}
+*Payment Method:* ${paymentMethod}
+----------------------------------------
+*ORDER ITEMS:*
+• ${itemName} x ${qty} Cylinder(s)
+========================================`;
+
+            if (paymentMethod.includes('Bank Transfer')) {
+                text += `
+*BANK TRANSFER DETAILS (ASKARI BANK):*
+Account Title: ${CONFIG.accountTitle}
+Account Number: ${CONFIG.accountNumber}
+IBAN: ${CONFIG.iban}
+*(Receipt screenshot will be attached after transfer)*
+========================================`;
+            }
+
+            text += `\nPlease confirm and dispatch my order. Thank you!`;
+
+            closeBookingModal();
+            const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Copy to clipboard helper
+        function copyToClipboard(text, successMsg) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg);
+            }).catch(() => {
+                const tempInput = document.createElement('input');
+                tempInput.value = text;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showToast(successMsg);
+            });
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.classList.remove('-translate-y-16', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-16', 'opacity-0');
+            }, 2200);
+        }
+    </script>
+</body>
+</html>
