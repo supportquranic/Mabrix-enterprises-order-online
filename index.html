@@ -379,6 +379,11 @@
                     <i class="fa-brands fa-whatsapp text-[#25D366] text-xs"></i>
                     <span>Talha Muzammil</span>
                 </a>
+                <span class="text-slate-300">•</span>
+                <a href="admin.html" title="Open Admin Dashboard" class="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-[#15387C] font-bold px-1 py-0.5 rounded transition">
+                    <i class="fa-solid fa-lock text-[9px]"></i>
+                    <span>Admin</span>
+                </a>
             </div>
         </footer>
 
@@ -832,6 +837,45 @@ IBAN: ${CONFIG.iban}
             }
 
             text += `\nPlease confirm and dispatch my order. Thank you!`;
+
+            // Record order in backend & local storage for Admin Dashboard
+            try {
+                const orderId = 'MBX-' + Math.floor(100000 + Math.random() * 900000);
+                const cylinderCode = isDomestic ? 'domestic' : 'commercial';
+                const pricePerUnit = cylinderCode === 'commercial' ? 12500 : 3000;
+                const totalPrice = qty * pricePerUnit;
+                const deliverySchedule = deliveryTime.toLowerCase().includes('24') ? 'tomorrow' : 'today';
+
+                const newOrderRecord = {
+                    id: orderId,
+                    customerName: name,
+                    phone: phone,
+                    area: area,
+                    address: address,
+                    cylinderType: itemName,
+                    cylinderCode: cylinderCode,
+                    quantity: qty,
+                    pricePerUnit: pricePerUnit,
+                    totalPrice: totalPrice,
+                    deliveryTime: deliveryTime,
+                    deliverySchedule: deliverySchedule,
+                    paymentMethod: paymentMethod,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+
+                // Save to localStorage for instant real-time sync with Admin Panel
+                let existingOrders = JSON.parse(localStorage.getItem('mabrix_orders') || '[]');
+                existingOrders.unshift(newOrderRecord);
+                localStorage.setItem('mabrix_orders', JSON.stringify(existingOrders));
+
+                // Send to backend API
+                fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newOrderRecord)
+                }).catch(() => {});
+            } catch (err) {}
 
             closeBookingModal();
             setTimeout(() => {

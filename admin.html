@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mabrix Enterprises | Admin Panel & Order Manager</title>
+    
+    <!-- Satoshi Font (Fontshare) -->
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400,300&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#15387C',
+                            blueDark: '#0b1d42',
+                            blueLight: '#eef3fb',
+                            blueBorder: '#cbd7eb',
+                            gold: '#F6AD3A',
+                            goldHover: '#e09a2b',
+                            goldLight: '#fef7ec',
+                            goldBorder: '#f8d294',
+                            dark: '#0f172a',
+                            muted: '#64748b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Satoshi', 'sans-serif'],
+                        display: ['Satoshi', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(21, 56, 124, 0.06)',
+                        'card': '0 8px 24px rgba(21, 56, 124, 0.08)',
+                        'nav': '0 -5px 25px rgba(11, 29, 66, 0.25)',
+                        'modal': '0 25px 60px -15px rgba(15, 23, 42, 0.35)'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Satoshi', sans-serif;
+            color: #0f172a;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", sans-serif !important;
+        }
+        .fa-brands {
+            font-family: "Font Awesome 6 Brands" !important;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 50px rgba(21, 56, 124, 0.12);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        @media (min-width: 1024px) {
+            .app-wrapper {
+                max-width: 500px;
+            }
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1.5px solid #e2e8f0;
+        }
+
+        /* 2x2 Metric cards styling matching reference */
+        .metric-card {
+            background: #ffffff;
+            border: 1.5px solid #eef2f7;
+            border-radius: 20px;
+            padding: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(21, 56, 124, 0.04);
+        }
+
+        .metric-card:hover {
+            border-color: #cbd7eb;
+            transform: translateY(-1px);
+        }
+
+        /* Chart bar styling */
+        .chart-bar-bg {
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar-fill {
+            background: linear-gradient(180deg, #F6AD3A 0%, #15387C 100%);
+            border-radius: 12px;
+            transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Floating dark navbar */
+        .bottom-nav-bar {
+            background: #0b1d42;
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(11, 29, 66, 0.4);
+        }
+
+        .nav-item.active {
+            color: #F6AD3A !important;
+        }
+        .nav-item.active .nav-icon {
+            transform: scale(1.15);
+        }
+
+        /* Hide scrollbars */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @keyframes alertPop {
+            0% { transform: translate(-50%, -100px) scale(0.9); opacity: 0; }
+            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
+        .animate-alert-pop {
+            animation: alertPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="selection:bg-[#15387C] selection:text-white pb-24">
+
+    <!-- IN-APP POPUP NOTIFICATION (TRIGGERED ON NEW ORDER) -->
+    <div id="newOrderNotification" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[440px] bg-[#0b1d42] text-white border-2 border-[#F6AD3A] rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3 hidden animate-alert-pop">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center text-lg font-black shrink-0 animate-bounce">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-black uppercase tracking-wider bg-[#F6AD3A]/20 text-[#F6AD3A] px-1.5 py-0.5 rounded">NEW ORDER</span>
+                    <span class="text-[11px] text-slate-300 font-bold" id="notifCustomerName">Customer</span>
+                </div>
+                <p class="text-xs font-black text-white leading-tight mt-0.5" id="notifOrderDetails">10 Kg Domestic Cylinder</p>
+                <p class="text-[10px] text-slate-400 font-medium" id="notifOrderArea">Bahria Town</p>
+            </div>
+        </div>
+        <button onclick="dismissNotification()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs shrink-0">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="app-wrapper flex flex-col justify-between">
+        
+        <!-- TOP STICKY HEADER (MATCHING REFERENCE UI) -->
+        <header class="sticky top-0 z-40 glass-header px-4 pt-3 pb-3">
+            <div class="flex items-center justify-between gap-3">
+                <!-- Brand Title with Yellow dot on I -->
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-display font-black text-xl text-[#15387C] tracking-tight uppercase leading-none">
+                            MABR<span class="relative inline-block">I<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#F6AD3A] rounded-full"></span></span>X
+                        </h1>
+                        <span class="text-[10px] bg-[#15387C] text-white font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                            ADMIN
+                        </span>
+                    </div>
+                    <p class="text-[10.5px] text-[#64748b] font-medium mt-0.5">
+                        LPG Orders, Dispatch & Live Monitoring
+                    </p>
+                </div>
+
+                <!-- Header Actions: Sound Toggle + Notifications Bell + Profile -->
+                <div class="flex items-center gap-2">
+                    <!-- Audio Sound Toggle -->
+                    <button onclick="toggleAudioAlerts()" id="audioToggleBtn" title="Toggle Sound Alert" class="w-9 h-9 rounded-xl bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs transition border border-[#cbd7eb]">
+                        <i id="audioIcon" class="fa-solid fa-volume-high text-sm"></i>
+                    </button>
+
+                    <!-- Notification Bell with Counter -->
+                    <div class="relative">
+                        <button onclick="switchTab('pending')" title="View Pending Orders" class="w-9 h-9 rounded-xl bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] text-[#15387C] flex items-center justify-center text-sm transition">
+                            <i class="fa-regular fa-bell text-base"></i>
+                        </button>
+                        <span id="unreadBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9.5px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+                            0
+                        </span>
+                    </div>
+
+                    <!-- Profile Avatar -->
+                    <div class="w-9 h-9 rounded-xl bg-[#15387C] text-[#F6AD3A] font-black text-xs flex items-center justify-center border border-[#15387C] shadow-sm">
+                        <span>MB</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT (DYNAMIC TABS) -->
+        <main class="flex-1 px-4 py-3.5 space-y-4">
+
+            <!-- ========================================== -->
+            <!-- TAB 1: DASHBOARD VIEW (MATCHING REFERENCE) -->
+            <!-- ========================================== -->
+            <section id="tabDashboard" class="space-y-4">
+                
+                <!-- TIME RANGE SELECTOR (EXACTLY AS IN REFERENCE) -->
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-black text-[#15387C] font-display">
+                        Time Range
+                    </h2>
+                    
+                    <!-- Custom Time Range Dropdown -->
+                    <div class="relative">
+                        <select 
+                            id="timeRangeSelect" 
+                            onchange="handleTimeRangeChange(this.value)" 
+                            class="appearance-none bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] text-[#15387C] font-bold text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:border-[#15387C] cursor-pointer shadow-sm transition"
+                        >
+                            <option value="today">Today</option>
+                            <option value="week" selected>Week</option>
+                            <option value="month">Month</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#15387C] pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- 4 QUICK METRIC CARDS (2x2 GRID - EXACT LAYOUT AS IN REFERENCE) -->
+                <div class="grid grid-cols-2 gap-3">
+                    
+                    <!-- CARD 1: TODAY TOTAL ORDERS -->
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-xl bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> Today
+                            </span>
+                        </div>
+                        <span class="text-[11px] text-[#64748b] font-bold block">Today Total Orders</span>
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                            <span class="text-xl sm:text-2xl font-black text-[#15387C] font-display" id="statTodayOrders">0</span>
+                            <span class="text-[11px] text-[#64748b] font-bold">Cylinders</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: TODAY'S SALE -->
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-xl bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-coins"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> Cash
+                            </span>
+                        </div>
+                        <span class="text-[11px] text-[#64748b] font-bold block">Today's Sale</span>
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                            <span class="text-lg sm:text-xl font-black text-[#F6AD3A] font-display" id="statTodaySale">PKR 0</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: WEEKLY ORDERS -->
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-xl bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-calendar-week"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> 7 Days
+                            </span>
+                        </div>
+                        <span class="text-[11px] text-[#64748b] font-bold block">Weekly Orders</span>
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                            <span class="text-xl sm:text-2xl font-black text-[#15387C] font-display" id="statWeeklyOrders">0</span>
+                            <span class="text-[11px] text-[#64748b] font-bold">Total</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD 4: WEEKLY SALE -->
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-xl bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> Volume
+                            </span>
+                        </div>
+                        <span class="text-[11px] text-[#64748b] font-bold block">Weekly Sale</span>
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                            <span class="text-lg sm:text-xl font-black text-[#15387C] font-display" id="statWeeklySale">PKR 0</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- HOURLY DISPATCH BAR CHART (EXACTLY AS IN REFERENCE IMAGE) -->
+                <div class="bg-white border border-[#e2e8f0] rounded-3xl p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-sm font-black text-[#15387C] font-display">Active Cylinder Dispatches</h3>
+                            <p class="text-[10.5px] text-[#64748b]">Hourly orders distribution</p>
+                        </div>
+                        <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Live Activity
+                        </span>
+                    </div>
+
+                    <!-- Visual Bars Container -->
+                    <div class="relative pt-6 pb-2">
+                        <!-- Floating Tooltip Mockup like reference (16:00 Cylinders: 5) -->
+                        <div id="chartTooltip" class="absolute -top-1 left-[62%] -translate-x-1/2 bg-white border border-[#cbd7eb] text-[#15387C] rounded-xl px-2.5 py-1 text-[10px] font-black shadow-md flex flex-col items-center pointer-events-none transition-all duration-200">
+                            <span class="text-[9px] text-[#64748b]" id="tooltipTime">16:00</span>
+                            <span class="text-[#F6AD3A]" id="tooltipValue">Cylinders : 5</span>
+                        </div>
+
+                        <!-- 7 Column Bars -->
+                        <div class="grid grid-cols-7 gap-2.5 h-36 items-end">
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(0, '09:00', 3)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill" style="height: 42%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#64748b] font-bold mt-1.5">09:00</span>
+                            </div>
+
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(1, '11:00', 6)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill" style="height: 68%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#64748b] font-bold mt-1.5">11:00</span>
+                            </div>
+
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(2, '13:00', 2)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill" style="height: 25%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#64748b] font-bold mt-1.5">13:00</span>
+                            </div>
+
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(3, '15:00', 4)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill" style="height: 50%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#64748b] font-bold mt-1.5">15:00</span>
+                            </div>
+
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(4, '16:00', 8)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill !bg-[#15387C]" style="height: 85%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#15387C] font-black mt-1.5">16:00</span>
+                            </div>
+
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(5, '18:00', 5)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill" style="height: 60%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#64748b] font-bold mt-1.5">18:00</span>
+                            </div>
+
+                            <div class="flex flex-col items-center h-full justify-end cursor-pointer" onclick="highlightChart(6, '20:00', 3)">
+                                <div class="w-full chart-bar-bg h-full flex items-end p-0.5">
+                                    <div class="w-full chart-bar-fill" style="height: 38%;"></div>
+                                </div>
+                                <span class="text-[9.5px] text-[#64748b] font-bold mt-1.5">20:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK RECENT ORDERS STREAM -->
+                <div class="space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-black text-[#15387C] font-display">Recent Bookings</h3>
+                        <button onclick="switchTab('pending')" class="text-xs font-bold text-[#F6AD3A] hover:underline">
+                            View All Pending <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div id="recentOrdersContainer" class="space-y-2.5">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ============================================================== -->
+            <!-- TAB 2: PENDING ORDERS (PENDING FOR TODAY & PENDING FOR TOMORROW) -->
+            <!-- ============================================================== -->
+            <section id="tabPending" class="space-y-3.5 hidden">
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-black text-[#15387C] font-display">
+                            Pending Deliveries
+                        </h2>
+                        <p class="text-[11px] text-[#64748b]">Scheduled orders requiring dispatch</p>
+                    </div>
+                    <span id="pendingTotalCountBadge" class="bg-amber-100 text-[#15387C] font-black text-xs px-2.5 py-1 rounded-xl border border-amber-300">
+                        0 Pending
+                    </span>
+                </div>
+
+                <!-- SUB-TABS: PENDING FOR TODAY vs PENDING FOR TOMORROW -->
+                <div class="flex p-1 bg-[#f1f5f9] rounded-2xl border border-[#cbd7eb] text-xs font-bold">
+                    <button 
+                        id="subtabTodayBtn" 
+                        onclick="switchPendingSubtab('today')" 
+                        class="flex-1 py-2 rounded-xl text-center transition bg-[#15387C] text-white shadow-sm flex items-center justify-center gap-1.5"
+                    >
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <span>Pending for Today</span>
+                        <span id="subtabTodayCount" class="bg-[#F6AD3A] text-[#15387C] text-[10px] font-black px-1.5 rounded-full">0</span>
+                    </button>
+
+                    <button 
+                        id="subtabTomorrowBtn" 
+                        onclick="switchPendingSubtab('tomorrow')" 
+                        class="flex-1 py-2 rounded-xl text-center transition text-slate-700 hover:text-[#15387C] flex items-center justify-center gap-1.5"
+                    >
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span>Pending for Tomorrow</span>
+                        <span id="subtabTomorrowCount" class="bg-slate-200 text-slate-700 text-[10px] font-black px-1.5 rounded-full">0</span>
+                    </button>
+                </div>
+
+                <!-- PENDING ORDERS LIST -->
+                <div id="pendingOrdersList" class="space-y-3">
+                    <!-- Rendered dynamically -->
+                </div>
+
+                <!-- EMPTY STATE FOR PENDING -->
+                <div id="emptyPendingState" class="hidden py-12 text-center bg-white border border-[#e2e8f0] rounded-3xl p-6">
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 border border-emerald-200">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h3 class="font-bold text-[#15387C] text-sm">All caught up!</h3>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">No pending deliveries found for this period. New orders from clients will appear here immediately.</p>
+                </div>
+
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 3: ALL ORDERS (SEARCH & COMPLETE LOG) -->
+            <!-- ========================================== -->
+            <section id="tabAllOrders" class="space-y-3.5 hidden">
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-black text-[#15387C] font-display">
+                            Order History
+                        </h2>
+                        <p class="text-[11px] text-[#64748b]">All customer records & status</p>
+                    </div>
+                    <span id="allOrdersTotalBadge" class="bg-[#eef3fb] text-[#15387C] font-black text-xs px-2.5 py-1 rounded-xl border border-[#cbd7eb]">
+                        0 Total
+                    </span>
+                </div>
+
+                <!-- SEARCH & FILTER BAR -->
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input 
+                        type="text" 
+                        id="orderSearchInput" 
+                        placeholder="Search by customer, phone, area, address..." 
+                        class="w-full bg-[#f8fafc] text-xs font-medium pl-9 pr-3.5 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C]"
+                        oninput="filterAllOrders(this.value)"
+                    >
+                </div>
+
+                <!-- STATUS PILLS -->
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold">
+                    <button onclick="setFilterStatus('all')" class="status-pill active shrink-0 px-3 py-1 rounded-lg bg-[#15387C] text-white">All</button>
+                    <button onclick="setFilterStatus('pending')" class="status-pill shrink-0 px-3 py-1 rounded-lg bg-[#f1f5f9] text-slate-700 hover:bg-[#eef3fb]">Pending</button>
+                    <button onclick="setFilterStatus('dispatched')" class="status-pill shrink-0 px-3 py-1 rounded-lg bg-[#f1f5f9] text-slate-700 hover:bg-[#eef3fb]">Dispatched</button>
+                    <button onclick="setFilterStatus('delivered')" class="status-pill shrink-0 px-3 py-1 rounded-lg bg-[#f1f5f9] text-slate-700 hover:bg-[#eef3fb]">Delivered</button>
+                    <button onclick="setFilterStatus('cancelled')" class="status-pill shrink-0 px-3 py-1 rounded-lg bg-[#f1f5f9] text-slate-700 hover:bg-[#eef3fb]">Cancelled</button>
+                </div>
+
+                <!-- ALL ORDERS CONTAINER -->
+                <div id="allOrdersList" class="space-y-2.5">
+                    <!-- Rendered dynamically -->
+                </div>
+
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 4: SETTINGS & CYLINDER RATES -->
+            <!-- ========================================== -->
+            <section id="tabSettings" class="space-y-3.5 hidden">
+                
+                <div>
+                    <h2 class="text-base font-black text-[#15387C] font-display">
+                        Rates & Admin Settings
+                    </h2>
+                    <p class="text-[11px] text-[#64748b]">Configure pricing for sales calculations and alerts</p>
+                </div>
+
+                <!-- CYLINDER RATES CARD -->
+                <div class="bg-white border border-[#cbd7eb] rounded-2xl p-4 shadow-sm space-y-3">
+                    <h3 class="text-xs font-black uppercase text-[#15387C] tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-tags text-[#F6AD3A]"></i> Cylinder Pricing (PKR)
+                    </h3>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div>
+                            <label class="block text-slate-700 font-bold mb-1">
+                                Domestic Cylinder (10 Kg) Rate:
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">PKR</span>
+                                <input 
+                                    type="number" 
+                                    id="settingDomesticRate" 
+                                    value="3000" 
+                                    class="w-full bg-[#f8fafc] pl-12 pr-3 py-2 rounded-xl border border-[#cbd7eb] font-bold text-[#15387C]"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-700 font-bold mb-1">
+                                Commercial Cylinder (45 Kg) Rate:
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">PKR</span>
+                                <input 
+                                    type="number" 
+                                    id="settingCommercialRate" 
+                                    value="12500" 
+                                    class="w-full bg-[#f8fafc] pl-12 pr-3 py-2 rounded-xl border border-[#cbd7eb] font-bold text-[#15387C]"
+                                >
+                            </div>
+                        </div>
+
+                        <button onclick="saveRates()" class="w-full bg-[#15387C] hover:bg-[#0b1d42] text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition">
+                            Save Rates & Update Sales
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TESTING & DEMO TOOLS -->
+                <div class="bg-white border border-[#cbd7eb] rounded-2xl p-4 shadow-sm space-y-3">
+                    <h3 class="text-xs font-black uppercase text-[#15387C] tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-vial text-[#F6AD3A]"></i> Testing & Sound Controls
+                    </h3>
+
+                    <div class="space-y-2 text-xs">
+                        <button onclick="playChimeSound()" class="w-full bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] text-[#15387C] font-bold py-2 rounded-xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bell text-[#F6AD3A]"></i> Test Audio Notification Sound
+                        </button>
+
+                        <button onclick="createMockOrder()" class="w-full bg-[#fef7ec] hover:bg-[#fdeed6] border border-[#f8d294] text-[#15387C] font-bold py-2 rounded-xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus text-[#F6AD3A]"></i> Simulate Incoming Order (Test Trigger)
+                        </button>
+
+                        <button onclick="clearAllOrders()" class="w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold py-2 rounded-xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trash"></i> Reset / Clear All Orders
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CLIENT MENU LINK -->
+                <div class="bg-[#eef3fb] border border-[#cbd7eb] rounded-2xl p-3.5 text-center text-xs">
+                    <span class="text-slate-600 block mb-1">Customer Order Page:</span>
+                    <a href="index.html" target="_blank" class="text-[#15387C] font-black underline flex items-center justify-center gap-1.5">
+                        <span>Open Customer Web App</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- ============================================================== -->
+        <!-- FLOATING DARK BOTTOM NAVBAR (EXACT STYLE AS IN REFERENCE IMAGE) -->
+        <!-- ============================================================== -->
+        <nav class="fixed bottom-3 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
+            <div class="w-full max-w-[460px] pointer-events-auto bottom-nav-bar text-white px-3 py-2 flex items-center justify-around">
+                
+                <!-- Tab 1: Dashboard -->
+                <button onclick="switchTab('dashboard')" id="navDashboard" class="nav-item active flex flex-col items-center gap-1 text-slate-300 hover:text-white transition py-1 px-3">
+                    <i class="fa-solid fa-table-cells-large text-base nav-icon transition-transform"></i>
+                    <span class="text-[10px] font-bold tracking-tight">Dashboard</span>
+                </button>
+
+                <!-- Tab 2: Pending (with badge) -->
+                <button onclick="switchTab('pending')" id="navPending" class="nav-item relative flex flex-col items-center gap-1 text-slate-300 hover:text-white transition py-1 px-3">
+                    <div class="relative">
+                        <i class="fa-solid fa-clock text-base nav-icon transition-transform"></i>
+                        <span id="navPendingBadge" class="absolute -top-1.5 -right-2.5 bg-[#F6AD3A] text-[#15387C] text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                            0
+                        </span>
+                    </div>
+                    <span class="text-[10px] font-bold tracking-tight">Pending</span>
+                </button>
+
+                <!-- Tab 3: All Orders -->
+                <button onclick="switchTab('allOrders')" id="navAllOrders" class="nav-item flex flex-col items-center gap-1 text-slate-300 hover:text-white transition py-1 px-3">
+                    <i class="fa-solid fa-boxes-stacked text-base nav-icon transition-transform"></i>
+                    <span class="text-[10px] font-bold tracking-tight">Orders</span>
+                </button>
+
+                <!-- Tab 4: Settings -->
+                <button onclick="switchTab('settings')" id="navSettings" class="nav-item flex flex-col items-center gap-1 text-slate-300 hover:text-white transition py-1 px-3">
+                    <i class="fa-solid fa-gear text-base nav-icon transition-transform"></i>
+                    <span class="text-[10px] font-bold tracking-tight">Settings</span>
+                </button>
+
+            </div>
+        </nav>
+
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#15387C] text-white text-xs font-black px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 transform -translate-y-16 opacity-0 transition-all duration-300 pointer-events-none border border-[#F6AD3A]">
+        <i class="fa-solid fa-circle-check text-[#F6AD3A]"></i>
+        <span id="toastMsg">Updated!</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & ENGINE -->
+    <script>
+        // CONFIG & RATES
+        let RATES = {
+            domestic: 3000,
+            commercial: 12500
+        };
+
+        // Load rates from storage if saved
+        try {
+            const savedRates = localStorage.getItem('mabrix_rates');
+            if (savedRates) RATES = JSON.parse(savedRates);
+        } catch(e){}
+
+        // State
+        let orders = [];
+        let currentTab = 'dashboard';
+        let pendingSubtab = 'today'; // 'today' or 'tomorrow'
+        let currentFilterStatus = 'all';
+        let searchQuery = '';
+        let currentTimeRange = 'week'; // 'today', 'week', 'month'
+        let audioAlertsEnabled = true;
+        let lastKnownOrderCount = 0;
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            initRatesInput();
+            loadOrders();
+            setupStorageListener();
+            setupPolling();
+
+            // Request Notification Permission
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        });
+
+        function initRatesInput() {
+            document.getElementById('settingDomesticRate').value = RATES.domestic;
+            document.getElementById('settingCommercialRate').value = RATES.commercial;
+        }
+
+        function saveRates() {
+            const dom = Number(document.getElementById('settingDomesticRate').value) || 3000;
+            const com = Number(document.getElementById('settingCommercialRate').value) || 12500;
+            RATES.domestic = dom;
+            RATES.commercial = com;
+            localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
+            showToast("Rates updated successfully!");
+            updateDashboardMetrics();
+        }
+
+        // LOAD ORDERS (DUAL SYNC: API + LOCALSTORAGE)
+        async function loadOrders() {
+            let loaded = false;
+
+            // 1. Try fetching from Backend API
+            try {
+                const res = await fetch('/api/orders', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data.orders)) {
+                        orders = data.orders;
+                        loaded = true;
+                        localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+                    }
+                }
+            } catch (err) {
+                // Static / local fallback
+            }
+
+            // 2. Fallback to LocalStorage
+            if (!loaded) {
+                try {
+                    const localData = localStorage.getItem('mabrix_orders');
+                    if (localData) {
+                        orders = JSON.parse(localData);
+                    } else {
+                        // Populate with a few realistic starter orders if empty
+                        initDefaultOrders();
+                    }
+                } catch(e) {
+                    initDefaultOrders();
+                }
+            }
+
+            // Check if new orders arrived to trigger alert
+            if (lastKnownOrderCount > 0 && orders.length > lastKnownOrderCount) {
+                const newest = orders[0];
+                triggerNewOrderAlert(newest);
+            }
+            lastKnownOrderCount = orders.length;
+
+            renderAll();
+        }
+
+        function initDefaultOrders() {
+            const now = new Date();
+            orders = [
+                {
+                    id: "MBX-748921",
+                    customerName: "Imran Khan",
+                    phone: "03001234567",
+                    area: "Bahria Town",
+                    address: "House 42, Sector C, Bahria Town Lahore",
+                    cylinderType: "Domestic Cylinder (10 Kg)",
+                    cylinderCode: "domestic",
+                    quantity: 1,
+                    pricePerUnit: RATES.domestic,
+                    totalPrice: RATES.domestic,
+                    deliveryTime: "As Soon As Possible",
+                    deliverySchedule: "today",
+                    paymentMethod: "Cash on Delivery (COD)",
+                    status: "pending",
+                    createdAt: new Date(now.getTime() - 25 * 60000).toISOString()
+                },
+                {
+                    id: "MBX-748920",
+                    customerName: "Tariq Mahmood (Cafe Royal)",
+                    phone: "03339876543",
+                    area: "Lake City",
+                    address: "Shop 12, Main Commercial Blvd, Lake City",
+                    cylinderType: "Commercial Cylinder (45 Kg)",
+                    cylinderCode: "commercial",
+                    quantity: 2,
+                    pricePerUnit: RATES.commercial,
+                    totalPrice: RATES.commercial * 2,
+                    deliveryTime: "Within 24 Hours",
+                    deliverySchedule: "tomorrow",
+                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
+                    status: "pending",
+                    createdAt: new Date(now.getTime() - 90 * 60000).toISOString()
+                },
+                {
+                    id: "MBX-748919",
+                    customerName: "Ayesha Bilal",
+                    phone: "03215554321",
+                    area: "Wapda Town",
+                    address: "House 18-B, Block E2, Wapda Town",
+                    cylinderType: "Domestic Cylinder (10 Kg)",
+                    cylinderCode: "domestic",
+                    quantity: 1,
+                    pricePerUnit: RATES.domestic,
+                    totalPrice: RATES.domestic,
+                    deliveryTime: "As Soon As Possible",
+                    deliverySchedule: "today",
+                    paymentMethod: "Cash on Delivery (COD)",
+                    status: "delivered",
+                    createdAt: new Date(now.getTime() - 4 * 3600000).toISOString()
+                }
+            ];
+            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+        }
+
+        // AUTO-SYNC / STORAGE LISTENER (CROSS-TAB SYNC)
+        function setupStorageListener() {
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'mabrix_orders') {
+                    try {
+                        const newOrders = JSON.parse(e.newValue);
+                        if (Array.isArray(newOrders) && newOrders.length > orders.length) {
+                            const newest = newOrders[0];
+                            triggerNewOrderAlert(newest);
+                        }
+                        orders = newOrders;
+                        lastKnownOrderCount = orders.length;
+                        renderAll();
+                    } catch(err){}
+                }
+            });
+        }
+
+        // BACKGROUND POLLING (EVERY 5 SECONDS FOR API)
+        function setupPolling() {
+            setInterval(() => {
+                loadOrders();
+            }, 5000);
+        }
+
+        // SOUND & VISUAL ALERT TRIGGER
+        function triggerNewOrderAlert(order) {
+            if (audioAlertsEnabled) {
+                playChimeSound();
+            }
+
+            // Show in-app banner
+            const notif = document.getElementById('newOrderNotification');
+            document.getElementById('notifCustomerName').textContent = order.customerName || 'Customer';
+            document.getElementById('notifOrderDetails').textContent = `${order.quantity}x ${order.cylinderType}`;
+            document.getElementById('notifOrderArea').textContent = `${order.area} • ${order.deliveryTime}`;
+            notif.classList.remove('hidden');
+
+            // Browser Notification
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("🔔 New Mabrix LPG Order!", {
+                    body: `${order.customerName} ordered ${order.quantity}x ${order.cylinderType} for ${order.area}.`,
+                    icon: "https://cdn-icons-png.flaticon.com/512/784/784867.png"
+                });
+            }
+
+            // Auto dismiss in 8 seconds
+            setTimeout(() => {
+                dismissNotification();
+            }, 8000);
+        }
+
+        function dismissNotification() {
+            const notif = document.getElementById('newOrderNotification');
+            notif.classList.add('hidden');
+        }
+
+        // SYNTHESIZED WEB AUDIO CHIME
+        function playChimeSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+
+                const now = ctx.currentTime;
+                // Note 1 (High bell chime)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(880, now); // A5
+                gain1.gain.setValueAtTime(0.4, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.6);
+
+                // Note 2 (Harmony)
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1174.66, now + 0.12); // D6
+                gain2.gain.setValueAtTime(0.5, now + 0.12);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.12);
+                osc2.stop(now + 0.9);
+            } catch(e){}
+        }
+
+        function toggleAudioAlerts() {
+            audioAlertsEnabled = !audioAlertsEnabled;
+            const icon = document.getElementById('audioIcon');
+            const btn = document.getElementById('audioToggleBtn');
+            if (audioAlertsEnabled) {
+                icon.className = "fa-solid fa-volume-high text-sm";
+                btn.className = "w-9 h-9 rounded-xl bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs transition border border-[#cbd7eb]";
+                showToast("Sound alerts enabled!");
+                playChimeSound();
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-sm text-red-500";
+                btn.className = "w-9 h-9 rounded-xl bg-red-50 border border-red-200 text-red-500 flex items-center justify-center text-xs transition";
+                showToast("Sound alerts muted");
+            }
+        }
+
+        // RENDER ALL DATA
+        function renderAll() {
+            updateDashboardMetrics();
+            renderRecentOrders();
+            renderPendingOrders();
+            renderAllOrdersList();
+            updatePendingBadges();
+        }
+
+        // DASHBOARD METRICS CALCULATION
+        function updateDashboardMetrics() {
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
+
+            let todayOrdersCount = 0;
+            let todaySaleVal = 0;
+            let weeklyOrdersCount = 0;
+            let weeklySaleVal = 0;
+
+            orders.forEach(o => {
+                if (o.status === 'cancelled') return;
+                const orderTime = new Date(o.createdAt).getTime();
+                const total = o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic));
+
+                if (orderTime >= startOfToday) {
+                    todayOrdersCount += (o.quantity || 1);
+                    todaySaleVal += total;
+                }
+
+                if (orderTime >= startOfWeek) {
+                    weeklyOrdersCount += (o.quantity || 1);
+                    weeklySaleVal += total;
+                }
+            });
+
+            document.getElementById('statTodayOrders').textContent = todayOrdersCount;
+            document.getElementById('statTodaySale').textContent = `PKR ${todaySaleVal.toLocaleString()}`;
+            document.getElementById('statWeeklyOrders').textContent = weeklyOrdersCount;
+            document.getElementById('statWeeklySale').textContent = `PKR ${weeklySaleVal.toLocaleString()}`;
+        }
+
+        // RENDER RECENT ORDERS ON DASHBOARD
+        function renderRecentOrders() {
+            const container = document.getElementById('recentOrdersContainer');
+            const recent = orders.slice(0, 4);
+
+            if (recent.length === 0) {
+                container.innerHTML = `<div class="p-4 bg-white border border-[#e2e8f0] rounded-2xl text-center text-xs text-slate-400">No orders recorded yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = recent.map(o => `
+                <div class="bg-white border border-[#e2e8f0] rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl ${o.cylinderCode === 'commercial' ? 'bg-[#fef7ec] text-[#F6AD3A] border border-[#f8d294]' : 'bg-[#eef3fb] text-[#15387C] border border-[#cbd7eb]'} flex items-center justify-center shrink-0 text-sm font-black">
+                            <i class="${o.cylinderCode === 'commercial' ? 'fa-solid fa-fire-burner' : 'fa-solid fa-house-chimney'}"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-xs text-[#0f172a] truncate">${o.customerName}</h4>
+                                <span class="text-[9px] uppercase font-extrabold px-1.5 py-0.2 rounded ${getStatusBadgeClass(o.status)}">${o.status}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                                ${o.quantity}x ${o.cylinderType} • ${o.area}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="font-black text-xs text-[#15387C] block font-display">PKR ${(o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))).toLocaleString()}</span>
+                        <span class="text-[9.5px] text-slate-400">${formatTimeAgo(o.createdAt)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // RENDER PENDING ORDERS (TODAY & TOMORROW TABS)
+        function renderPendingOrders() {
+            const container = document.getElementById('pendingOrdersList');
+            const emptyState = document.getElementById('emptyPendingState');
+
+            const pending = orders.filter(o => o.status === 'pending');
+            
+            // Partition by deliverySchedule or deliveryTime
+            const todayOrders = pending.filter(o => o.deliverySchedule === 'today' || o.deliveryTime.toLowerCase().includes('soon') || o.deliveryTime.toLowerCase().includes('asap') || !o.deliverySchedule);
+            const tomorrowOrders = pending.filter(o => o.deliverySchedule === 'tomorrow' || o.deliveryTime.toLowerCase().includes('24'));
+
+            document.getElementById('subtabTodayCount').textContent = todayOrders.length;
+            document.getElementById('subtabTomorrowCount').textContent = tomorrowOrders.length;
+
+            const listToRender = (pendingSubtab === 'today') ? todayOrders : tomorrowOrders;
+
+            if (listToRender.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            container.innerHTML = listToRender.map(o => `
+                <div class="bg-white border-2 ${o.cylinderCode === 'commercial' ? 'border-[#f8d294]' : 'border-[#cbd7eb]'} rounded-2xl p-4 shadow-sm space-y-3">
+                    
+                    <!-- Top Info Row -->
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-[#15387C] font-display">${o.customerName}</span>
+                                <span class="text-[9.5px] font-bold bg-amber-100 text-amber-800 px-2 py-0.2 rounded-full border border-amber-300">
+                                    Pending Dispatch
+                                </span>
+                            </div>
+                            <span class="text-[11px] text-[#64748b] font-medium flex items-center gap-1.5 mt-0.5">
+                                <i class="fa-solid fa-clock text-[#F6AD3A] text-[10px]"></i> ${o.deliveryTime}
+                                <span>•</span>
+                                <i class="fa-solid fa-location-dot text-[#15387C] text-[10px]"></i> ${o.area}
+                            </span>
+                        </div>
+
+                        <div class="text-right">
+                            <span class="text-sm font-black text-[#15387C] font-display block">PKR ${(o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))).toLocaleString()}</span>
+                            <span class="text-[9.5px] text-slate-500 font-bold uppercase">${o.paymentMethod.includes('Bank') ? 'Askari Bank' : 'COD'}</span>
+                        </div>
+                    </div>
+
+                    <!-- Cylinder Order Details -->
+                    <div class="bg-[#f8fafc] rounded-xl p-2.5 border border-[#e2e8f0] text-xs flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="${o.cylinderCode === 'commercial' ? 'fa-solid fa-fire-burner text-[#F6AD3A]' : 'fa-solid fa-fire text-[#15387C]'}"></i>
+                            <span class="font-bold text-[#0f172a]">${o.cylinderType}</span>
+                        </div>
+                        <span class="font-extrabold text-[#15387C] bg-white border border-[#cbd7eb] px-2 py-0.5 rounded-lg text-xs">Qty: ${o.quantity}</span>
+                    </div>
+
+                    <!-- Customer Address -->
+                    <div class="text-xs text-slate-700 bg-[#fef7ec]/60 border border-[#f8d294]/60 rounded-xl p-2.5">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Delivery Address:</span>
+                        <p class="font-medium mt-0.5 text-slate-800 leading-snug">${o.address || 'No address provided'}</p>
+                    </div>
+
+                    <!-- Action Buttons: Call, WhatsApp, Dispatch, Deliver -->
+                    <div class="pt-1 flex items-center gap-2">
+                        <!-- Direct Call -->
+                        <a href="tel:${o.phone}" class="w-10 h-9 rounded-xl bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs font-bold border border-[#cbd7eb] active:scale-95 transition" title="Call Customer">
+                            <i class="fa-solid fa-phone"></i>
+                        </a>
+
+                        <!-- Direct Customer WhatsApp -->
+                        <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, this is Mabrix Enterprises regarding your LPG cylinder order.`)}" target="_blank" class="w-10 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-sm shadow-sm active:scale-95 transition" title="WhatsApp Customer">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+
+                        <!-- Mark Dispatched -->
+                        <button onclick="updateOrderStatus('${o.id}', 'dispatched')" class="flex-1 bg-[#15387C] hover:bg-[#0b1d42] text-white font-bold text-xs py-2 px-2.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="fa-solid fa-truck-fast text-[11px] text-[#F6AD3A]"></i>
+                            <span>Dispatch</span>
+                        </button>
+
+                        <!-- Mark Delivered -->
+                        <button onclick="updateOrderStatus('${o.id}', 'delivered')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-2.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="fa-solid fa-check text-[11px]"></i>
+                            <span>Delivered</span>
+                        </button>
+                    </div>
+
+                </div>
+            `).join('');
+        }
+
+        // RENDER ALL ORDERS (WITH SEARCH & STATUS FILTERS)
+        function renderAllOrdersList() {
+            const container = document.getElementById('allOrdersList');
+            document.getElementById('allOrdersTotalBadge').textContent = `${orders.length} Total`;
+
+            let filtered = orders;
+
+            if (currentFilterStatus !== 'all') {
+                filtered = filtered.filter(o => o.status === currentFilterStatus);
+            }
+
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase().trim();
+                filtered = filtered.filter(o => 
+                    (o.customerName && o.customerName.toLowerCase().includes(q)) ||
+                    (o.phone && o.phone.toLowerCase().includes(q)) ||
+                    (o.area && o.area.toLowerCase().includes(q)) ||
+                    (o.address && o.address.toLowerCase().includes(q)) ||
+                    (o.cylinderType && o.cylinderType.toLowerCase().includes(q))
+                );
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-8 bg-white border border-[#e2e8f0] rounded-2xl text-center text-xs text-slate-400">No matching orders found.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => `
+                <div class="bg-white border border-[#e2e8f0] rounded-2xl p-3.5 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-bold text-xs text-[#0f172a] block">${o.customerName}</span>
+                            <span class="text-[10px] text-slate-400 font-mono">${o.id} • ${formatDateTime(o.createdAt)}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9.5px] uppercase font-extrabold px-2 py-0.5 rounded-md ${getStatusBadgeClass(o.status)}">${o.status}</span>
+                            <span class="text-xs font-black text-[#15387C] block mt-0.5">PKR ${(o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))).toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <div class="text-[11.5px] text-slate-600 flex items-center justify-between pt-1 border-t border-slate-100">
+                        <span>${o.quantity}x ${o.cylinderType}</span>
+                        <span class="text-slate-500 font-bold">${o.area}</span>
+                    </div>
+
+                    <!-- Status toggle dropdown -->
+                    <div class="pt-1.5 flex items-center justify-between text-xs">
+                        <span class="text-[10px] text-slate-400">Change Status:</span>
+                        <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-[11px] font-bold bg-[#f8fafc] border border-[#cbd7eb] text-[#15387C] rounded-lg px-2 py-1">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>Dispatched</option>
+                            <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // UPDATE STATUS HANDLER
+        async function updateOrderStatus(orderId, newStatus) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            order.status = newStatus;
+            order.updatedAt = new Date().toISOString();
+
+            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+
+            // Sync with backend API
+            try {
+                await fetch('/api/orders', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: orderId, status: newStatus })
+                });
+            } catch(e){}
+
+            showToast(`Order marked as ${newStatus}!`);
+            renderAll();
+        }
+
+        // TABS SWITCHING
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            ['tabDashboard', 'tabPending', 'tabAllOrders', 'tabSettings'].forEach(t => {
+                document.getElementById(t).classList.add('hidden');
+            });
+
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+            if (tabName === 'dashboard') {
+                document.getElementById('tabDashboard').classList.remove('hidden');
+                document.getElementById('navDashboard').classList.add('active');
+            } else if (tabName === 'pending') {
+                document.getElementById('tabPending').classList.remove('hidden');
+                document.getElementById('navPending').classList.add('active');
+            } else if (tabName === 'allOrders') {
+                document.getElementById('tabAllOrders').classList.remove('hidden');
+                document.getElementById('navAllOrders').classList.add('active');
+            } else if (tabName === 'settings') {
+                document.getElementById('tabSettings').classList.remove('hidden');
+                document.getElementById('navSettings').classList.add('active');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchPendingSubtab(sub) {
+            pendingSubtab = sub;
+            const todayBtn = document.getElementById('subtabTodayBtn');
+            const tomorrowBtn = document.getElementById('subtabTomorrowBtn');
+
+            if (sub === 'today') {
+                todayBtn.className = "flex-1 py-2 rounded-xl text-center transition bg-[#15387C] text-white shadow-sm flex items-center justify-center gap-1.5";
+                tomorrowBtn.className = "flex-1 py-2 rounded-xl text-center transition text-slate-700 hover:text-[#15387C] flex items-center justify-center gap-1.5";
+            } else {
+                tomorrowBtn.className = "flex-1 py-2 rounded-xl text-center transition bg-[#15387C] text-white shadow-sm flex items-center justify-center gap-1.5";
+                todayBtn.className = "flex-1 py-2 rounded-xl text-center transition text-slate-700 hover:text-[#15387C] flex items-center justify-center gap-1.5";
+            }
+
+            renderPendingOrders();
+        }
+
+        function setFilterStatus(status) {
+            currentFilterStatus = status;
+            document.querySelectorAll('.status-pill').forEach(btn => {
+                if (btn.textContent.toLowerCase() === status) {
+                    btn.className = "status-pill active shrink-0 px-3 py-1 rounded-lg bg-[#15387C] text-white";
+                } else {
+                    btn.className = "status-pill shrink-0 px-3 py-1 rounded-lg bg-[#f1f5f9] text-slate-700 hover:bg-[#eef3fb]";
+                }
+            });
+            renderAllOrdersList();
+        }
+
+        function filterAllOrders(val) {
+            searchQuery = val;
+            renderAllOrdersList();
+        }
+
+        function handleTimeRangeChange(val) {
+            currentTimeRange = val;
+            showToast(`Time Range set to: ${val.toUpperCase()}`);
+            updateDashboardMetrics();
+        }
+
+        function updatePendingBadges() {
+            const pendingCount = orders.filter(o => o.status === 'pending').length;
+            document.getElementById('unreadBadge').textContent = pendingCount;
+            document.getElementById('navPendingBadge').textContent = pendingCount;
+            document.getElementById('pendingTotalCountBadge').textContent = `${pendingCount} Pending`;
+        }
+
+        // SIMULATE / TEST ORDER CREATOR
+        async function createMockOrder() {
+            const names = ["Zubair Ahmed", "Kashif Riaz", "Malik Usman", "Ali Raza", "Dr. Naveed"];
+            const areas = ["Bahria Town", "Lake City", "Khyaban-e-Amin", "Wapda Town", "Valencia Town"];
+            const isCom = Math.random() > 0.5;
+            const code = isCom ? "commercial" : "domestic";
+            const qty = isCom ? 2 : 1;
+            const name = names[Math.floor(Math.random() * names.length)];
+            const area = areas[Math.floor(Math.random() * areas.length)];
+            const schedule = Math.random() > 0.5 ? "today" : "tomorrow";
+
+            const mockOrder = {
+                id: "MBX-" + Math.floor(100000 + Math.random() * 900000),
+                customerName: name,
+                phone: "0300" + Math.floor(1000000 + Math.random() * 9000000),
+                area: area,
+                address: `Plot #${Math.floor(Math.random() * 200)}, Street 5, ${area}`,
+                cylinderType: isCom ? "Commercial Cylinder (45 Kg)" : "Domestic Cylinder (10 Kg)",
+                cylinderCode: code,
+                quantity: qty,
+                pricePerUnit: isCom ? RATES.commercial : RATES.domestic,
+                totalPrice: qty * (isCom ? RATES.commercial : RATES.domestic),
+                deliveryTime: schedule === 'today' ? "As Soon As Possible" : "Within 24 Hours",
+                deliverySchedule: schedule,
+                paymentMethod: "Cash on Delivery (COD)",
+                status: "pending",
+                createdAt: new Date().toISOString()
+            };
+
+            orders.unshift(mockOrder);
+            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+
+            // Sync with backend API if running
+            try {
+                await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mockOrder)
+                });
+            } catch(e){}
+
+            triggerNewOrderAlert(mockOrder);
+            renderAll();
+            showToast("Test order created & notification triggered!");
+        }
+
+        function clearAllOrders() {
+            if (confirm("Are you sure you want to clear all order records?")) {
+                orders = [];
+                localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+                renderAll();
+                showToast("All orders cleared.");
+            }
+        }
+
+        // CHART INTERACTION
+        function highlightChart(idx, timeStr, val) {
+            const tooltip = document.getElementById('chartTooltip');
+            document.getElementById('tooltipTime').textContent = timeStr;
+            document.getElementById('tooltipValue').textContent = `Cylinders : ${val}`;
+            
+            const positions = [7, 21, 35, 50, 64, 78, 92];
+            tooltip.style.left = `${positions[idx]}%`;
+        }
+
+        // HELPERS
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'delivered': return 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+                case 'dispatched': return 'bg-blue-100 text-[#15387C] border border-[#cbd7eb]';
+                case 'cancelled': return 'bg-red-100 text-red-800 border border-red-300';
+                default: return 'bg-amber-100 text-amber-800 border border-amber-300';
+            }
+        }
+
+        function cleanPhone(phone) {
+            let p = String(phone).replace(/[^0-9]/g, '');
+            if (p.startsWith('0')) p = '92' + p.substring(1);
+            if (!p.startsWith('92')) p = '92' + p;
+            return p;
+        }
+
+        function formatDateTime(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        function formatTimeAgo(isoStr) {
+            if (!isoStr) return '';
+            const sec = Math.floor((new Date() - new Date(isoStr)) / 1000);
+            if (sec < 60) return "Just now";
+            const min = Math.floor(sec / 60);
+            if (min < 60) return `${min}m ago`;
+            const hr = Math.floor(min / 60);
+            if (hr < 24) return `${hr}h ago`;
+            return `${Math.floor(hr / 24)}d ago`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.classList.remove('-translate-y-16', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-16', 'opacity-0');
+            }, 2200);
+        }
+    </script>
+</body>
+</html>
