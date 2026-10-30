@@ -25,14 +25,14 @@ if not os.path.exists(ORDERS_FILE):
 
 if not os.path.exists(RATES_FILE):
     with open(RATES_FILE, 'w', encoding='utf-8') as f:
-        json.dump({'domestic': 5000, 'commercial': 10000}, f, indent=2)
+        json.dump({'domestic': 5000, 'commercial': 10000, 'isDefault': True, 'isCustom': False, 'updatedAt': '2026-01-01T00:00:00.000Z'}, f, indent=2)
 
 def read_rates():
     try:
         with open(RATES_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception:
-        return {'domestic': 5000, 'commercial': 10000}
+        return {'domestic': 5000, 'commercial': 10000, 'isDefault': True, 'isCustom': False, 'updatedAt': '2026-01-01T00:00:00.000Z'}
 
 def write_rates(rates):
     try:
@@ -106,11 +106,13 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
                 body = {}
 
             current = read_rates()
-            if 'domestic' in body:
+            if 'domestic' in body and body['domestic'] is not None:
                 current['domestic'] = int(body['domestic'])
-            if 'commercial' in body:
+            if 'commercial' in body and body['commercial'] is not None:
                 current['commercial'] = int(body['commercial'])
-            current['updatedAt'] = datetime.now().isoformat()
+            current['isDefault'] = False
+            current['isCustom'] = True
+            current['updatedAt'] = body.get('updatedAt') or datetime.now().isoformat()
             write_rates(current)
 
             response_data = json.dumps({'success': True, 'rates': current}).encode('utf-8')

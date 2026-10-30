@@ -268,24 +268,24 @@
                     </div>
 
                     <!-- Highlights & Specs -->
-                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
-                        <div class="bg-white border border-[#cbd7eb] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
-                            <div class="w-8 h-8 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-sm">
+                    <div class="grid grid-cols-2 gap-2 mt-3.5">
+                        <div class="bg-white/95 border border-[#cbd7eb] rounded-xl p-2 flex items-center gap-2 shadow-xs">
+                            <div class="w-7 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-xs">
                                 <i class="fa-solid fa-shield-halved"></i>
                             </div>
-                            <div class="min-w-0">
-                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Safety</span>
-                                <span class="text-[#0f172a] font-bold text-xs truncate block">Sealed & Tested</span>
+                            <div class="min-w-0 leading-tight">
+                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Safety</span>
+                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">Sealed & Tested</span>
                             </div>
                         </div>
 
-                        <div class="bg-white border border-[#cbd7eb] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
-                            <div class="w-8 h-8 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-sm">
+                        <div class="bg-white/95 border border-[#cbd7eb] rounded-xl p-2 flex items-center gap-2 shadow-xs">
+                            <div class="w-7 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-xs">
                                 <i class="fa-solid fa-truck-fast"></i>
                             </div>
-                            <div class="min-w-0">
-                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Delivery</span>
-                                <span class="text-[#0f172a] font-bold text-xs truncate block">Doorstep Express</span>
+                            <div class="min-w-0 leading-tight">
+                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Delivery</span>
+                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">Doorstep Express</span>
                             </div>
                         </div>
                     </div>
@@ -339,24 +339,24 @@
                     </div>
 
                     <!-- Highlights & Specs -->
-                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
-                        <div class="bg-white border border-[#f8d294] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
-                            <div class="w-8 h-8 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-sm">
+                    <div class="grid grid-cols-2 gap-2 mt-3.5">
+                        <div class="bg-white/95 border border-[#f8d294] rounded-xl p-2 flex items-center gap-2 shadow-xs">
+                            <div class="w-7 h-7 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-xs">
                                 <i class="fa-solid fa-gauge-high"></i>
                             </div>
-                            <div class="min-w-0">
-                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Pressure</span>
-                                <span class="text-[#0f172a] font-bold text-xs truncate block">High Flow Flame</span>
+                            <div class="min-w-0 leading-tight">
+                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Pressure</span>
+                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">High Flow Flame</span>
                             </div>
                         </div>
 
-                        <div class="bg-white border border-[#f8d294] rounded-xl p-2.5 flex items-center gap-2.5 shadow-sm">
-                            <div class="w-8 h-8 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-sm">
+                        <div class="bg-white/95 border border-[#f8d294] rounded-xl p-2 flex items-center gap-2 shadow-xs">
+                            <div class="w-7 h-7 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-xs">
                                 <i class="fa-solid fa-truck-ramp-box"></i>
                             </div>
-                            <div class="min-w-0">
-                                <span class="text-[9.5px] text-[#64748b] uppercase font-bold block truncate">Bulk Supply</span>
-                                <span class="text-[#0f172a] font-bold text-xs truncate block">Priority Transport</span>
+                            <div class="min-w-0 leading-tight">
+                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Bulk Supply</span>
+                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">Priority Transport</span>
                             </div>
                         </div>
                     </div>
@@ -666,13 +666,17 @@
         // DYNAMIC RATES (SYNCED LIVE WITH ADMIN PANEL & /api/rates)
         let RATES = {
             domestic: 5000,
-            commercial: 10000
+            commercial: 10000,
+            updatedAt: 0,
+            isCustom: false
         };
 
         function applyRates(rates) {
             if (!rates) return;
             if (rates.domestic) RATES.domestic = Number(rates.domestic);
             if (rates.commercial) RATES.commercial = Number(rates.commercial);
+            if (rates.updatedAt) RATES.updatedAt = rates.updatedAt;
+            if (rates.isCustom !== undefined) RATES.isCustom = rates.isCustom;
 
             const domEl = document.getElementById('domesticPriceDisplay');
             if (domEl) domEl.textContent = `PKR ${RATES.domestic.toLocaleString()}`;
@@ -693,19 +697,36 @@
 
         async function loadLiveRates() {
             // 1. Instant local storage cache
+            let localData = null;
             try {
                 const cached = localStorage.getItem('mabrix_rates');
                 if (cached) {
-                    applyRates(JSON.parse(cached));
+                    localData = JSON.parse(cached);
+                    applyRates(localData);
                 }
             } catch(e){}
 
-            // 2. Fetch live rates from backend API
+            // 2. Fetch live rates from backend API with timestamp guard
             try {
                 const res = await fetch('/api/rates', { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.rates) {
+                        const remoteTime = new Date(data.rates.updatedAt || 0).getTime() || 0;
+                        const localTime = localData && localData.updatedAt 
+                            ? (typeof localData.updatedAt === 'number' ? localData.updatedAt : new Date(localData.updatedAt).getTime() || 0)
+                            : 0;
+
+                        // GUARD: Never revert local custom rates with remote default rates
+                        if (data.rates.isDefault && localData && localData.isCustom) {
+                            return;
+                        }
+
+                        // GUARD: Never revert if local rates are newer than remote
+                        if (localData && localData.isCustom && localTime > remoteTime) {
+                            return;
+                        }
+
                         applyRates(data.rates);
                         localStorage.setItem('mabrix_rates', JSON.stringify(data.rates));
                     }
@@ -717,10 +738,21 @@
         window.addEventListener('storage', (e) => {
             if (e.key === 'mabrix_rates') {
                 try {
-                    applyRates(JSON.parse(e.newValue));
+                    const parsed = JSON.parse(e.newValue);
+                    if (parsed) applyRates(parsed);
                 } catch(err){}
             }
         });
+
+        // Instant cross-tab BroadcastChannel listener
+        try {
+            const ratesChannel = new BroadcastChannel('mabrix_rates_channel');
+            ratesChannel.onmessage = (e) => {
+                if (e.data && e.data.rates) {
+                    applyRates(e.data.rates);
+                }
+            };
+        } catch(e){}
 
         // Initialize rates on page load and poll every 6 seconds
         document.addEventListener('DOMContentLoaded', () => {

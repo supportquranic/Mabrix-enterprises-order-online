@@ -1144,8 +1144,36 @@
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.rates) {
+                        const localRaw = localStorage.getItem('mabrix_rates');
+                        let localData = null;
+                        if (localRaw) {
+                            try { localData = JSON.parse(localRaw); } catch(e){}
+                        }
+
+                        const remoteTime = new Date(data.rates.updatedAt || 0).getTime() || 0;
+                        const localTime = localData && localData.updatedAt 
+                            ? (typeof localData.updatedAt === 'number' ? localData.updatedAt : new Date(localData.updatedAt).getTime() || 0)
+                            : 0;
+
+                        // If remote is default but local has custom rates saved, don't revert; sync local rates to server
+                        if (data.rates.isDefault && localData && localData.isCustom) {
+                            fetch('/api/rates', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(localData)
+                            }).catch(() => {});
+                            return;
+                        }
+
+                        // If local data exists and is newer than remote, don't revert
+                        if (localData && localData.isCustom && localTime > remoteTime) {
+                            return;
+                        }
+
                         if (data.rates.domestic) RATES.domestic = Number(data.rates.domestic);
                         if (data.rates.commercial) RATES.commercial = Number(data.rates.commercial);
+                        RATES.updatedAt = remoteTime || Date.now();
+                        RATES.isCustom = Boolean(data.rates.isCustom);
                         localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
                         initRatesInput();
                         updateDashboardMetrics();
@@ -1158,16 +1186,33 @@
         async function saveRates() {
             const dom = Number(document.getElementById('settingDomesticRate').value) || 5000;
             const com = Number(document.getElementById('settingCommercialRate').value) || 10000;
+            const now = Date.now();
+            const ratesData = {
+                domestic: dom,
+                commercial: com,
+                updatedAt: now,
+                isCustom: true
+            };
             RATES.domestic = dom;
             RATES.commercial = com;
-            localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
+            RATES.updatedAt = now;
+            RATES.isCustom = true;
+
+            localStorage.setItem('mabrix_rates', JSON.stringify(ratesData));
+
+            // Instant cross-tab broadcast via BroadcastChannel
+            try {
+                const ch = new BroadcastChannel('mabrix_rates_channel');
+                ch.postMessage({ type: 'RATES_UPDATED', rates: ratesData });
+                setTimeout(() => ch.close(), 1000);
+            } catch(e){}
 
             // Broadcast to backend API live
             try {
                 await fetch('/api/rates', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ domestic: dom, commercial: com })
+                    body: JSON.stringify(ratesData)
                 });
             } catch(e){}
 
@@ -1848,6 +1893,19 @@
                     }
                 };
             } catch(e){}
+
+            try {
+                const ratesCh = new BroadcastChannel('mabrix_rates_channel');
+                ratesCh.onmessage = (e) => {
+                    if (e.data && e.data.rates) {
+                        if (e.data.rates.domestic) RATES.domestic = Number(e.data.rates.domestic);
+                        if (e.data.rates.commercial) RATES.commercial = Number(e.data.rates.commercial);
+                        initRatesInput();
+                        updateDashboardMetrics();
+                        renderSalesChart();
+                    }
+                };
+            } catch(e){}
         }
 
         // STORAGE EVENT LISTENER (HIGH-PRIORITY INSTANT CROSS-TAB TRIGGER)
@@ -1870,6 +1928,15 @@
                                 }
                             });
                         }
+                    } catch(err){}
+                } else if (e.key === 'mabrix_rates') {
+                    try {
+                        const parsed = JSON.parse(e.newValue);
+                        if (parsed && parsed.domestic) RATES.domestic = Number(parsed.domestic);
+                        if (parsed && parsed.commercial) RATES.commercial = Number(parsed.commercial);
+                        initRatesInput();
+                        updateDashboardMetrics();
+                        renderSalesChart();
                     } catch(err){}
                 }
             });

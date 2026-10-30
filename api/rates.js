@@ -1,11 +1,40 @@
 // Vercel Serverless Function: /api/rates
-// Persistent in-memory and configurable rates store
+// Persistent store with /tmp scratchpad and in-memory cache
 
-let currentRates = {
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+
+const TMP_FILE = path.join(os.tmpdir(), 'mabrix_rates.json');
+
+const DEFAULT_RATES = {
     domestic: 5000,
     commercial: 10000,
-    updatedAt: new Date().toISOString()
+    isDefault: true,
+    isCustom: false,
+    updatedAt: "2026-01-01T00:00:00.000Z"
 };
+
+let memoryRates = null;
+
+function getStoredRates() {
+    if (memoryRates) return memoryRates;
+    try {
+        if (fs.existsSync(TMP_FILE)) {
+            const raw = fs.readFileSync(TMP_FILE, 'utf-8');
+            memoryRates = JSON.parse(raw);
+            return memoryRates;
+        }
+    } catch(e){}
+    return DEFAULT_RATES;
+}
+
+function saveStoredRates(rates) {
+    memoryRates = rates;
+    try {
+        fs.writeFileSync(TMP_FILE, JSON.stringify(rates, null, 2), 'utf-8');
+    } catch(e){}
+}
 
 export default function handler(req, res) {
     // Enable CORS
@@ -26,22 +55,29 @@ export default function handler(req, res) {
     if (req.method === 'GET') {
         return res.status(200).json({
             success: true,
-            rates: currentRates
+            rates: getStoredRates()
         });
     }
 
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-            if (body) {
-                if (body.domestic) currentRates.domestic = Number(body.domestic);
-                if (body.commercial) currentRates.commercial = Number(body.commercial);
-                currentRates.updatedAt = new Date().toISOString();
-            }
+            const current = getStoredRates();
+            const updated = {
+                domestic: (body && body.domestic !== undefined) ? Number(body.domestic) : current.domestic,
+                commercial: (body && body.commercial !== undefined) ? Number(body.commercial) : current.commercial,
+                isDefault: false,
+                isCustom: true,
+                updatedAt: (body && body.updatedAt) 
+                    ? (typeof body.updatedAt === 'number' ? new Date(body.updatedAt).toISOString() : body.updatedAt)
+                    : new Date().toISOString()
+            };
+
+            saveStoredRates(updated);
 
             return res.status(200).json({
                 success: true,
-                rates: currentRates
+                rates: updated
             });
         } catch (err) {
             return res.status(400).json({ success: false, error: err.message });
