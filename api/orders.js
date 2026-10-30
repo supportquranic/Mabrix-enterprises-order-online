@@ -52,7 +52,7 @@ let ordersStore = [
         deliveryTime: "As Soon As Possible",
         deliverySchedule: "today",
         paymentMethod: "Cash on Delivery (COD)",
-        status: "dispatched",
+        status: "delivered",
         createdAt: new Date(now.getTime() - 110 * 60000).toISOString()
     },
     {

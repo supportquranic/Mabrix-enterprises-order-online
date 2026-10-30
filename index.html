@@ -50,8 +50,22 @@
     
     <style>
         * {
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent !important;
             box-sizing: border-box;
+        }
+
+        /* Remove blue text highlighting in Chrome & browsers */
+        ::selection {
+            background: transparent !important;
+            color: inherit !important;
+        }
+        ::-moz-selection {
+            background: transparent !important;
+            color: inherit !important;
+        }
+        input::selection, textarea::selection {
+            background: rgba(246, 173, 58, 0.3) !important;
+            color: #15387C !important;
         }
 
         body {
