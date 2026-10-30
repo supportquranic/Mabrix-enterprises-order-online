@@ -924,9 +924,29 @@
                 };
 
                 // Save to localStorage for instant real-time sync with Admin Panel
-                let existingOrders = JSON.parse(localStorage.getItem('mabrix_orders') || '[]');
+                let existingOrders = [];
+                try {
+                    const raw = localStorage.getItem('mabrix_orders');
+                    if (raw) existingOrders = JSON.parse(raw);
+                } catch(e){}
+                if (!Array.isArray(existingOrders)) existingOrders = [];
                 existingOrders.unshift(newOrderRecord);
                 localStorage.setItem('mabrix_orders', JSON.stringify(existingOrders));
+
+                // High-priority instant storage trigger
+                try {
+                    localStorage.setItem('mabrix_instant_order_event', JSON.stringify({
+                        order: newOrderRecord,
+                        timestamp: Date.now()
+                    }));
+                } catch(e){}
+
+                // Instant 0ms cross-tab broadcast notification
+                try {
+                    const ch = new BroadcastChannel('mabrix_orders_channel');
+                    ch.postMessage({ type: 'NEW_ORDER', order: newOrderRecord });
+                    setTimeout(() => ch.close(), 1000);
+                } catch(e){}
 
                 // Send to backend API
                 fetch('/api/orders', {

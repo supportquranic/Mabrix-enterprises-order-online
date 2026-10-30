@@ -329,9 +329,6 @@
                             <div class="w-8 h-8 rounded-xl bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-boxes-stacked"></i>
                             </div>
-                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
-                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> Today
-                            </span>
                         </div>
                         <span class="text-[11px] text-[#64748b] font-bold block">Today Total Orders</span>
                         <div class="flex items-baseline gap-1 mt-0.5">
@@ -347,9 +344,6 @@
                             <div class="w-8 h-8 rounded-xl bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-coins"></i>
                             </div>
-                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
-                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> Cash
-                            </span>
                         </div>
                         <span class="text-[11px] text-[#64748b] font-bold block">Today's Sale</span>
                         <div class="flex items-baseline gap-1 mt-0.5">
@@ -364,9 +358,6 @@
                             <div class="w-8 h-8 rounded-xl bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-calendar-week"></i>
                             </div>
-                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
-                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> 7 Days
-                            </span>
                         </div>
                         <span class="text-[11px] text-[#64748b] font-bold block">Weekly Orders</span>
                         <div class="flex items-baseline gap-1 mt-0.5">
@@ -382,9 +373,6 @@
                             <div class="w-8 h-8 rounded-xl bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-chart-line"></i>
                             </div>
-                            <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
-                                <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> Volume
-                            </span>
                         </div>
                         <span class="text-[11px] text-[#64748b] font-bold block">Weekly Sale</span>
                         <div class="flex items-baseline gap-1 mt-0.5">
@@ -1001,6 +989,15 @@
 
         function verifyPin() {
             if (currentEnteredPin === ADMIN_PIN) {
+                // Pre-warm and unlock audio context immediately
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        if (!window.mabrixAudioCtx) window.mabrixAudioCtx = new AudioCtx();
+                        if (window.mabrixAudioCtx.state === 'suspended') window.mabrixAudioCtx.resume();
+                    }
+                } catch(e){}
+
                 // Success: mark green briefly then unlock
                 for (let i = 0; i < 4; i++) {
                     const dot = document.getElementById(`pinDot${i}`);
@@ -1094,6 +1091,7 @@
         let currentTimeRange = 'week'; // 'today', 'week', 'month'
         let audioAlertsEnabled = true;
         let lastKnownOrderCount = 0;
+        let knownOrderIds = new Set();
 
         // INITIALIZATION
         document.addEventListener('DOMContentLoaded', () => {
@@ -1103,6 +1101,16 @@
             loadOrders();
             setupStorageListener();
             setupPolling();
+            setupBroadcastChannel();
+
+            // Unlock audio on any click/touch
+            document.addEventListener('click', () => {
+                try {
+                    if (window.mabrixAudioCtx && window.mabrixAudioCtx.state === 'suspended') {
+                        window.mabrixAudioCtx.resume();
+                    }
+                } catch(e){}
+            }, { passive: true });
 
             // Request Notification Permission
             if ("Notification" in window && Notification.permission === "default") {
@@ -1190,10 +1198,13 @@
             }
 
             // Check if new orders arrived to trigger alert
-            if (lastKnownOrderCount > 0 && orders.length > lastKnownOrderCount) {
-                const newest = orders[0];
-                triggerNewOrderAlert(newest);
+            if (knownOrderIds.size > 0) {
+                const newArrivals = orders.filter(o => !knownOrderIds.has(o.id));
+                if (newArrivals.length > 0) {
+                    newArrivals.forEach(o => triggerNewOrderAlert(o));
+                }
             }
+            orders.forEach(o => knownOrderIds.add(o.id));
             lastKnownOrderCount = orders.length;
 
             renderAll();
@@ -1525,6 +1536,53 @@
         let activeMetricScope = 'today';
         let activeMetricTitle = '';
 
+        function renderModalOrderCard(o) {
+            const total = o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic));
+            return `
+                <div class="bg-white border border-[#cbd7eb] rounded-2xl p-3.5 shadow-sm space-y-2.5">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-[#15387C] font-display">${o.customerName}</span>
+                                <span class="text-[9px] uppercase font-black px-1.5 py-0.5 rounded ${getStatusBadgeClass(o.status)}">${o.status}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono">${o.id} • ${formatDateTime(o.createdAt)}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-black text-[#15387C] font-display block">PKR ${total.toLocaleString()}</span>
+                            <span class="text-[9px] text-slate-500 font-bold uppercase">${o.paymentMethod.includes('Bank') ? 'Askari Bank' : 'COD'}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#f8fafc] rounded-xl p-2 text-xs flex items-center justify-between border border-slate-100">
+                        <span class="font-bold text-slate-700">${o.quantity}x ${o.cylinderType}</span>
+                        <span class="text-[10.5px] font-bold text-[#15387C] bg-white px-2 py-0.5 rounded border border-[#cbd7eb]">${o.area}</span>
+                    </div>
+
+                    <div class="text-[11px] text-slate-600">
+                        <span class="font-bold text-slate-400 text-[10px] uppercase">Address: </span>
+                        <span>${o.address || 'Not specified'}</span>
+                    </div>
+
+                    <!-- Clean actions: Call and emerald WhatsApp (No status dropdown) -->
+                    <div class="pt-1 flex items-center justify-between gap-2 border-t border-slate-100">
+                        <div class="flex items-center gap-1.5">
+                            <a href="tel:${o.phone}" class="w-8 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] hover:bg-[#dce6f7] flex items-center justify-center text-xs font-bold border border-[#cbd7eb]" title="Call">
+                                <i class="fa-solid fa-phone"></i>
+                            </a>
+                            <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, regarding your Mabrix LPG order.`)}" target="_blank" class="w-8 h-7 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center text-xs" title="WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Status: </span>
+                            <span class="text-[10px] font-extrabold ${o.status === 'delivered' ? 'text-emerald-600' : 'text-amber-600'} uppercase">${o.status}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function openMetricOrdersList(scope, title) {
             activeMetricScope = scope;
             activeMetricTitle = title;
@@ -1532,17 +1590,26 @@
             const now = new Date();
             const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
             const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
+            const sevenDaysAgo = now.getTime() - (7 * 86400000);
 
-            const targetOrders = orders.filter(o => {
+            let targetOrders = orders.filter(o => {
                 if (o.status === 'cancelled') return false;
                 const t = new Date(o.createdAt).getTime();
                 if (scope === 'today') return t >= startOfToday;
-                if (scope === 'week') return t >= startOfWeek;
+                if (scope === 'week') return (t >= startOfWeek || t >= sevenDaysAgo);
                 return true;
             });
 
+            // Fallback for weekly if no recent orders exist
+            if (scope === 'week' && targetOrders.length === 0) {
+                targetOrders = orders.filter(o => o.status !== 'cancelled');
+            }
+
+            // Sort newest first
+            targetOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
             document.getElementById('metricModalTitle').textContent = title;
-            document.getElementById('metricModalSubtitle').textContent = scope === 'today' ? "Orders placed today" : "Orders placed in the last 7 days";
+            document.getElementById('metricModalSubtitle').textContent = scope === 'today' ? "Orders placed today" : "Orders grouped day-by-day for the full week";
             
             const totalCylinders = targetOrders.reduce((acc, o) => acc + (o.quantity || 1), 0);
             const totalSaleVal = targetOrders.reduce((acc, o) => acc + (o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))), 0);
@@ -1551,56 +1618,64 @@
             document.getElementById('metricModalTotalAmount').textContent = `Total: PKR ${totalSaleVal.toLocaleString()}`;
 
             const listContainer = document.getElementById('metricModalOrdersList');
+            
             if (targetOrders.length === 0) {
                 listContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-[#f8fafc] rounded-2xl border border-dashed border-[#cbd7eb]">No orders recorded for this period yet.</div>`;
-            } else {
-                listContainer.innerHTML = targetOrders.map(o => `
-                    <div class="bg-white border border-[#cbd7eb] rounded-2xl p-3.5 shadow-sm space-y-2.5">
-                        <div class="flex items-start justify-between gap-2">
+            } else if (scope === 'week') {
+                // Group orders per day for that full week ("dont mix anything")
+                const dayGroups = {};
+                targetOrders.forEach(o => {
+                    const d = new Date(o.createdAt);
+                    const valid = !isNaN(d.getTime());
+                    const key = valid ? d.toISOString().split('T')[0] : 'other';
+                    if (!dayGroups[key]) {
+                        dayGroups[key] = {
+                            dateKey: key,
+                            timestamp: valid ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : 0,
+                            label: valid ? d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Earlier Orders',
+                            orders: [],
+                            daySale: 0,
+                            dayCylinders: 0
+                        };
+                    }
+                    dayGroups[key].orders.push(o);
+                    const bill = o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic));
+                    dayGroups[key].daySale += bill;
+                    dayGroups[key].dayCylinders += (o.quantity || 1);
+                });
+
+                const sortedDays = Object.values(dayGroups).sort((a, b) => b.timestamp - a.timestamp);
+
+                listContainer.innerHTML = sortedDays.map(day => `
+                    <div class="mb-5 bg-white border-2 border-[#cbd7eb] rounded-2xl overflow-hidden shadow-sm">
+                        <!-- Dedicated Day Section Header with Date and Day's Total Sale Amount -->
+                        <div class="bg-[#f8fafc] px-4 py-3 border-b border-[#cbd7eb] flex items-center justify-between">
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs font-black text-[#15387C] font-display">${o.customerName}</span>
-                                    <span class="text-[9px] uppercase font-black px-1.5 py-0.5 rounded ${getStatusBadgeClass(o.status)}">${o.status}</span>
+                                    <span class="w-6 h-6 rounded-lg bg-[#15387C] text-white flex items-center justify-center text-[10px]">
+                                        <i class="fa-solid fa-calendar-day"></i>
+                                    </span>
+                                    <h4 class="text-xs font-black text-[#15387C] font-display uppercase tracking-wide">${day.label}</h4>
                                 </div>
-                                <span class="text-[10px] text-slate-400 font-mono">${o.id} • ${formatDateTime(o.createdAt)}</span>
+                                <span class="text-[10px] text-slate-500 font-bold block mt-0.5 ml-8">
+                                    ${day.orders.length} ${day.orders.length === 1 ? 'Order' : 'Orders'} • ${day.dayCylinders} Cylinders
+                                </span>
                             </div>
-                            <div class="text-right">
-                                <span class="text-xs font-black text-[#15387C] font-display block">PKR ${(o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))).toLocaleString()}</span>
-                                <span class="text-[9px] text-slate-500 font-bold uppercase">${o.paymentMethod.includes('Bank') ? 'Askari Bank' : 'COD'}</span>
+                            <div class="text-right bg-emerald-50 border border-emerald-300 px-3 py-1.5 rounded-xl shadow-xs">
+                                <span class="text-[9px] uppercase font-extrabold text-emerald-700 block">Day Sales</span>
+                                <span class="text-xs sm:text-sm font-black text-emerald-800 font-display">PKR ${day.daySale.toLocaleString()}</span>
                             </div>
                         </div>
 
-                        <div class="bg-[#f8fafc] rounded-xl p-2 text-xs flex items-center justify-between border border-slate-100">
-                            <span class="font-bold text-slate-700">${o.quantity}x ${o.cylinderType}</span>
-                            <span class="text-[10.5px] font-bold text-[#15387C] bg-white px-2 py-0.5 rounded border border-[#cbd7eb]">${o.area}</span>
-                        </div>
-
-                        <div class="text-[11px] text-slate-600">
-                            <span class="font-bold text-slate-400 text-[10px] uppercase">Address: </span>
-                            <span>${o.address || 'Not specified'}</span>
-                        </div>
-
-                        <div class="pt-1 flex items-center justify-between gap-2 border-t border-slate-100">
-                            <div class="flex items-center gap-1.5">
-                                <a href="tel:${o.phone}" class="w-8 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] hover:bg-[#dce6f7] flex items-center justify-center text-xs font-bold border border-[#cbd7eb]" title="Call">
-                                    <i class="fa-solid fa-phone"></i>
-                                </a>
-                                <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, regarding your Mabrix LPG order.`)}" target="_blank" class="w-8 h-7 rounded-lg bg-[#25D366] text-white hover:bg-[#20ba5a] flex items-center justify-center text-xs" title="WhatsApp">
-                                    <i class="fa-brands fa-whatsapp"></i>
-                                </a>
-                            </div>
-
-                            <div class="flex items-center gap-1">
-                                <span class="text-[10px] text-slate-400">Status:</span>
-                                <select onchange="updateOrderStatusFromModal('${o.id}', this.value)" class="text-[10.5px] font-bold bg-[#f8fafc] border border-[#cbd7eb] text-[#15387C] rounded-lg px-2 py-0.5">
-                                    <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
-                                    <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                                </select>
-                            </div>
+                        <!-- Orders of this specific day (no mixing) -->
+                        <div class="p-3 space-y-2.5 bg-slate-50/50">
+                            ${day.orders.map(o => renderModalOrderCard(o)).join('')}
                         </div>
                     </div>
                 `).join('');
+            } else {
+                // Today scope list (direct clean cards, no dropdown)
+                listContainer.innerHTML = targetOrders.map(o => renderModalOrderCard(o)).join('');
             }
 
             const modal = document.getElementById('metricListModal');
@@ -1626,41 +1701,67 @@
             }
         }
 
-        async function updateOrderStatusFromModal(orderId, newStatus) {
-            await updateOrderStatus(orderId, newStatus);
-            if (activeMetricTitle) {
-                openMetricOrdersList(activeMetricScope, activeMetricTitle);
-            }
-        }
-
         function switchToFilteredOrdersTab() {
             closeMetricListModal();
             switchTab('allOrders');
         }
 
-        // AUTO-SYNC / STORAGE LISTENER (CROSS-TAB SYNC)
+        // INCOMING NEW ORDER HANDLER (0ms Instant Notification & Deduplication)
+        function handleIncomingNewOrder(order) {
+            if (!order || !order.id) return;
+            const alreadyExists = knownOrderIds.has(order.id) || orders.some(o => o.id === order.id);
+            if (!alreadyExists) {
+                knownOrderIds.add(order.id);
+                orders.unshift(order);
+                localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+                triggerNewOrderAlert(order);
+                lastKnownOrderCount = orders.length;
+                renderAll();
+            }
+        }
+
+        // BROADCAST CHANNEL (INSTANT 0ms ZERO LATENCY CROSS-TAB SYNC)
+        function setupBroadcastChannel() {
+            try {
+                const ch = new BroadcastChannel('mabrix_orders_channel');
+                ch.onmessage = (e) => {
+                    if (e.data && e.data.type === 'NEW_ORDER' && e.data.order) {
+                        handleIncomingNewOrder(e.data.order);
+                    }
+                };
+            } catch(e){}
+        }
+
+        // STORAGE EVENT LISTENER (HIGH-PRIORITY INSTANT CROSS-TAB TRIGGER)
         function setupStorageListener() {
             window.addEventListener('storage', (e) => {
-                if (e.key === 'mabrix_orders') {
+                if (e.key === 'mabrix_instant_order_event') {
+                    try {
+                        const payload = JSON.parse(e.newValue);
+                        if (payload && payload.order) {
+                            handleIncomingNewOrder(payload.order);
+                        }
+                    } catch(err){}
+                } else if (e.key === 'mabrix_orders') {
                     try {
                         const newOrders = JSON.parse(e.newValue);
-                        if (Array.isArray(newOrders) && newOrders.length > orders.length) {
-                            const newest = newOrders[0];
-                            triggerNewOrderAlert(newest);
+                        if (Array.isArray(newOrders)) {
+                            newOrders.forEach(o => {
+                                if (o && o.id && !knownOrderIds.has(o.id) && !orders.some(x => x.id === o.id)) {
+                                    handleIncomingNewOrder(o);
+                                }
+                            });
                         }
-                        orders = newOrders;
-                        lastKnownOrderCount = orders.length;
-                        renderAll();
                     } catch(err){}
                 }
             });
         }
 
-        // BACKGROUND POLLING (EVERY 5 SECONDS FOR API)
+        // BACKGROUND POLLING (EVERY 1.5 SECONDS FOR FAST SYNC)
         function setupPolling() {
             setInterval(() => {
                 loadOrders();
-            }, 5000);
+            }, 1500);
         }
 
         // SOUND & VISUAL ALERT TRIGGER
@@ -1893,8 +1994,8 @@
                             <i class="fa-solid fa-phone"></i>
                         </a>
 
-                        <!-- Direct Customer WhatsApp -->
-                        <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, this is Mabrix Enterprises regarding your LPG cylinder order.`)}" target="_blank" class="w-10 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-sm shadow-sm active:scale-95 transition" title="WhatsApp Customer">
+                        <!-- Direct Customer WhatsApp (Same emerald green as Mark Delivered) -->
+                        <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, this is Mabrix Enterprises regarding your LPG cylinder order.`)}" target="_blank" class="w-10 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-sm shadow-sm active:scale-95 transition" title="WhatsApp Customer">
                             <i class="fa-brands fa-whatsapp"></i>
                         </a>
 
@@ -1903,18 +2004,13 @@
                             <i class="fa-solid fa-check text-[11px]"></i>
                             <span>Mark Delivered</span>
                         </button>
-
-                        <!-- Mark Cancelled -->
-                        <button onclick="updateOrderStatus('${o.id}', 'cancelled')" class="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200 active:scale-95 transition" title="Cancel Order">
-                            <i class="fa-solid fa-xmark text-xs"></i>
-                        </button>
                     </div>
 
                 </div>
             `).join('');
         }
 
-        // RENDER ALL ORDERS (WITH SEARCH & STATUS FILTERS)
+        // RENDER ALL ORDERS (WITH SEARCH & STATUS FILTERS - AUTOMATIC STATUS, NO DROPDOWN)
         function renderAllOrdersList() {
             const container = document.getElementById('allOrdersList');
             document.getElementById('allOrdersTotalBadge').textContent = `${orders.length} Total`;
@@ -1959,14 +2055,17 @@
                         <span class="text-slate-500 font-bold">${o.area}</span>
                     </div>
 
-                    <!-- Status toggle dropdown -->
-                    <div class="pt-1.5 flex items-center justify-between text-xs">
-                        <span class="text-[10px] text-slate-400">Change Status:</span>
-                        <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-[11px] font-bold bg-[#f8fafc] border border-[#cbd7eb] text-[#15387C] rounded-lg px-2 py-1">
-                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
-                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                        </select>
+                    <!-- Order Quick Action & Details (No dropdown, status is automatically shown via badge) -->
+                    <div class="pt-1.5 flex items-center justify-between text-xs border-t border-slate-100">
+                        <span class="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">${o.address || o.area}</span>
+                        <div class="flex items-center gap-1.5">
+                            <a href="tel:${o.phone}" class="w-7 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-[11px]" title="Call">
+                                <i class="fa-solid fa-phone"></i>
+                            </a>
+                            <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, regarding your Mabrix LPG order.`)}" target="_blank" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-xs" title="WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -2550,7 +2649,7 @@
                 <body>
                     <div class="header">
                         <div>
-                            <h1 class="logo-text">MABR<span class="logo-dot">•</span>X <span style="font-size: 14px; font-weight: 700; color: #F6AD3A; letter-spacing: 1px; margin-left: 6px;">ENTERPRISES</span></h1>
+                            <h1 class="logo-text">MABR<span style="position: relative; display: inline-block;">I<span style="position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background-color: #F6AD3A; border-radius: 50%;"></span></span>X <span style="font-size: 14px; font-weight: 700; color: #F6AD3A; letter-spacing: 1px; margin-left: 6px;">ENTERPRISES</span></h1>
                             <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.85;">Official Weekly LPG Sales, Cylinder Distribution & Orders Audit</p>
                         </div>
                         <div style="text-align: right;">
