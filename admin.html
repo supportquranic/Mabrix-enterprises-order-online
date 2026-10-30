@@ -1600,13 +1600,12 @@
 
             let pillsHtml = `
                 <button type="button" onclick="selectWeeklyModalDay('all')" 
-                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center justify-center cursor-pointer active:scale-95 ${
                         activeWeeklyModalDayKey === 'all' 
                         ? 'bg-[#15387C] text-white shadow-sm ring-2 ring-[#15387C]/20' 
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }">
-                    <span>All Days</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded-md ${activeWeeklyModalDayKey === 'all' ? 'bg-[#F6AD3A] text-[#15387C]' : 'bg-slate-200 text-slate-600'}">${totalWeekOrders}</span>
+                    All Days
                 </button>
             `;
 
@@ -1614,15 +1613,12 @@
                 const isActive = (activeWeeklyModalDayKey === day.dateKey);
                 return `
                     <button type="button" onclick="selectWeeklyModalDay('${day.dateKey}')" 
-                        class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                        class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center justify-center cursor-pointer active:scale-95 ${
                             isActive 
                             ? 'bg-[#15387C] text-white shadow-sm ring-2 ring-[#15387C]/30' 
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
                         }">
-                        <span>${day.shortLabel}</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-md ${
-                            isActive ? 'bg-[#F6AD3A] text-[#15387C]' : 'bg-emerald-100 text-emerald-800'
-                        }">PKR ${day.daySale >= 1000 ? (day.daySale / 1000) + 'k' : day.daySale}</span>
+                        ${day.shortLabel}
                     </button>
                 `;
             }).join('');
