@@ -858,9 +858,14 @@
                 </div>
 
                 <!-- Quick Summary Bar -->
-                <div class="bg-[#eef3fb] px-5 py-2.5 border-b border-[#cbd7eb] flex items-center justify-between text-xs">
+                <div class="bg-[#eef3fb] px-5 py-2.5 border-b border-[#cbd7eb] flex items-center justify-between text-xs shrink-0">
                     <span class="font-bold text-slate-600" id="metricModalCount">0 Orders</span>
                     <span class="font-black text-[#15387C] font-display" id="metricModalTotalAmount">Total: PKR 0</span>
+                </div>
+
+                <!-- Day Filter Pills Bar (For Weekly Sales & Orders Breakdown) -->
+                <div id="metricModalDaysPillsBar" class="bg-white px-3.5 py-2.5 border-b border-[#cbd7eb] overflow-x-auto flex items-center gap-1.5 shrink-0 hidden" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <!-- Dynamic Day Pills Rendered Here -->
                 </div>
 
                 <!-- Modal Content (Scrollable Orders List) -->
@@ -1583,6 +1588,134 @@
             `;
         }
 
+        let weeklyModalDaysData = [];
+        let activeWeeklyModalDayKey = 'all';
+
+        function renderWeeklyDaysPills() {
+            const pillsBar = document.getElementById('metricModalDaysPillsBar');
+            if (!pillsBar) return;
+            pillsBar.classList.remove('hidden');
+
+            const totalWeekOrders = weeklyModalDaysData.reduce((acc, d) => acc + d.orders.length, 0);
+
+            let pillsHtml = `
+                <button type="button" onclick="selectWeeklyModalDay('all')" 
+                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                        activeWeeklyModalDayKey === 'all' 
+                        ? 'bg-[#15387C] text-white shadow-sm ring-2 ring-[#15387C]/20' 
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }">
+                    <span>All Days</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-md ${activeWeeklyModalDayKey === 'all' ? 'bg-[#F6AD3A] text-[#15387C]' : 'bg-slate-200 text-slate-600'}">${totalWeekOrders}</span>
+                </button>
+            `;
+
+            pillsHtml += weeklyModalDaysData.map(day => {
+                const isActive = (activeWeeklyModalDayKey === day.dateKey);
+                return `
+                    <button type="button" onclick="selectWeeklyModalDay('${day.dateKey}')" 
+                        class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                            isActive 
+                            ? 'bg-[#15387C] text-white shadow-sm ring-2 ring-[#15387C]/30' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                        }">
+                        <span>${day.shortLabel}</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-md ${
+                            isActive ? 'bg-[#F6AD3A] text-[#15387C]' : 'bg-emerald-100 text-emerald-800'
+                        }">PKR ${day.daySale >= 1000 ? (day.daySale / 1000) + 'k' : day.daySale}</span>
+                    </button>
+                `;
+            }).join('');
+
+            pillsBar.innerHTML = pillsHtml;
+        }
+
+        function selectWeeklyModalDay(dateKey) {
+            activeWeeklyModalDayKey = dateKey;
+            renderWeeklyDaysPills();
+            renderWeeklyModalOrders();
+        }
+
+        function renderWeeklyModalOrders() {
+            const listContainer = document.getElementById('metricModalOrdersList');
+            if (!listContainer) return;
+
+            if (weeklyModalDaysData.length === 0) {
+                listContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-[#f8fafc] rounded-2xl border border-dashed border-[#cbd7eb]">No weekly orders recorded yet.</div>`;
+                return;
+            }
+
+            if (activeWeeklyModalDayKey === 'all') {
+                const totalCylinders = weeklyModalDaysData.reduce((acc, d) => acc + d.dayCylinders, 0);
+                const totalSale = weeklyModalDaysData.reduce((acc, d) => acc + d.daySale, 0);
+                const totalOrdersCount = weeklyModalDaysData.reduce((acc, d) => acc + d.orders.length, 0);
+
+                document.getElementById('metricModalCount').textContent = `Full Week: ${totalOrdersCount} Bookings (${totalCylinders} Cylinders)`;
+                document.getElementById('metricModalTotalAmount').textContent = `Total: PKR ${totalSale.toLocaleString()}`;
+
+                listContainer.innerHTML = weeklyModalDaysData.map(day => `
+                    <div class="mb-5 bg-white border-2 border-[#cbd7eb] rounded-2xl overflow-hidden shadow-sm">
+                        <!-- Dedicated Day Section Header with Date and Day's Total Sale Amount -->
+                        <div class="bg-[#f8fafc] px-4 py-3 border-b border-[#cbd7eb] flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-[#15387C] text-white flex items-center justify-center text-[10px]">
+                                        <i class="fa-solid fa-calendar-day"></i>
+                                    </span>
+                                    <h4 class="text-xs font-black text-[#15387C] font-display uppercase tracking-wide">${day.fullLabel}</h4>
+                                </div>
+                                <span class="text-[10px] text-slate-500 font-bold block mt-0.5 ml-8">
+                                    ${day.orders.length} ${day.orders.length === 1 ? 'Order' : 'Orders'} • ${day.dayCylinders} Cylinders
+                                </span>
+                            </div>
+                            <div class="text-right bg-emerald-50 border border-emerald-300 px-3 py-1.5 rounded-xl shadow-xs">
+                                <span class="text-[9px] uppercase font-extrabold text-emerald-700 block">Day Sales</span>
+                                <span class="text-xs sm:text-sm font-black text-emerald-800 font-display">PKR ${day.daySale.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        <!-- Orders of this specific day (no mixing) -->
+                        <div class="p-3 space-y-2.5 bg-slate-50/50">
+                            ${day.orders.map(o => renderModalOrderCard(o)).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                // Show ONLY the clicked day's orders and sales!
+                const selectedDay = weeklyModalDaysData.find(d => d.dateKey === activeWeeklyModalDayKey);
+                if (!selectedDay) return;
+
+                document.getElementById('metricModalCount').textContent = `${selectedDay.shortLabel}: ${selectedDay.orders.length} Bookings (${selectedDay.dayCylinders} Cylinders)`;
+                document.getElementById('metricModalTotalAmount').textContent = `Day Total: PKR ${selectedDay.daySale.toLocaleString()}`;
+
+                listContainer.innerHTML = `
+                    <div class="mb-4 bg-white border-2 border-[#15387C] rounded-2xl overflow-hidden shadow-md">
+                        <!-- Dedicated Single Day Hero Header with Total Sales -->
+                        <div class="bg-[#15387C] text-white px-4 py-3.5 flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-8 h-8 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center text-xs font-black">
+                                    <i class="fa-solid fa-calendar-day"></i>
+                                </span>
+                                <div>
+                                    <h4 class="text-xs font-black font-display uppercase tracking-wide">${selectedDay.fullLabel}</h4>
+                                    <span class="text-[10px] text-slate-300 block mt-0.5">${selectedDay.orders.length} ${selectedDay.orders.length === 1 ? 'Order' : 'Orders'} • ${selectedDay.dayCylinders} Cylinders</span>
+                                </div>
+                            </div>
+                            <div class="text-right bg-emerald-500/20 border border-emerald-400/40 px-3 py-1.5 rounded-xl">
+                                <span class="text-[9px] uppercase font-bold text-[#F6AD3A] block">Day Sales</span>
+                                <span class="text-xs sm:text-sm font-black text-white font-display">PKR ${selectedDay.daySale.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        <!-- Orders of this day only -->
+                        <div class="p-3.5 space-y-2.5 bg-[#fbfcfe]">
+                            ${selectedDay.orders.map(o => renderModalOrderCard(o)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         function openMetricOrdersList(scope, title) {
             activeMetricScope = scope;
             activeMetricTitle = title;
@@ -1609,19 +1742,12 @@
             targetOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
             document.getElementById('metricModalTitle').textContent = title;
-            document.getElementById('metricModalSubtitle').textContent = scope === 'today' ? "Orders placed today" : "Orders grouped day-by-day for the full week";
-            
-            const totalCylinders = targetOrders.reduce((acc, o) => acc + (o.quantity || 1), 0);
-            const totalSaleVal = targetOrders.reduce((acc, o) => acc + (o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))), 0);
-
-            document.getElementById('metricModalCount').textContent = `${targetOrders.length} Bookings (${totalCylinders} Cylinders)`;
-            document.getElementById('metricModalTotalAmount').textContent = `Total: PKR ${totalSaleVal.toLocaleString()}`;
+            document.getElementById('metricModalSubtitle').textContent = scope === 'today' ? "Orders placed today" : "Select any day pill to view that day's orders & sales";
 
             const listContainer = document.getElementById('metricModalOrdersList');
-            
-            if (targetOrders.length === 0) {
-                listContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-[#f8fafc] rounded-2xl border border-dashed border-[#cbd7eb]">No orders recorded for this period yet.</div>`;
-            } else if (scope === 'week') {
+            const pillsBar = document.getElementById('metricModalDaysPillsBar');
+
+            if (scope === 'week') {
                 // Group orders per day for that full week ("dont mix anything")
                 const dayGroups = {};
                 targetOrders.forEach(o => {
@@ -1632,7 +1758,8 @@
                         dayGroups[key] = {
                             dateKey: key,
                             timestamp: valid ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : 0,
-                            label: valid ? d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Earlier Orders',
+                            fullLabel: valid ? d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Earlier Orders',
+                            shortLabel: valid ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Earlier',
                             orders: [],
                             daySale: 0,
                             dayCylinders: 0
@@ -1644,38 +1771,25 @@
                     dayGroups[key].dayCylinders += (o.quantity || 1);
                 });
 
-                const sortedDays = Object.values(dayGroups).sort((a, b) => b.timestamp - a.timestamp);
+                weeklyModalDaysData = Object.values(dayGroups).sort((a, b) => b.timestamp - a.timestamp);
+                activeWeeklyModalDayKey = 'all';
 
-                listContainer.innerHTML = sortedDays.map(day => `
-                    <div class="mb-5 bg-white border-2 border-[#cbd7eb] rounded-2xl overflow-hidden shadow-sm">
-                        <!-- Dedicated Day Section Header with Date and Day's Total Sale Amount -->
-                        <div class="bg-[#f8fafc] px-4 py-3 border-b border-[#cbd7eb] flex items-center justify-between">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="w-6 h-6 rounded-lg bg-[#15387C] text-white flex items-center justify-center text-[10px]">
-                                        <i class="fa-solid fa-calendar-day"></i>
-                                    </span>
-                                    <h4 class="text-xs font-black text-[#15387C] font-display uppercase tracking-wide">${day.label}</h4>
-                                </div>
-                                <span class="text-[10px] text-slate-500 font-bold block mt-0.5 ml-8">
-                                    ${day.orders.length} ${day.orders.length === 1 ? 'Order' : 'Orders'} • ${day.dayCylinders} Cylinders
-                                </span>
-                            </div>
-                            <div class="text-right bg-emerald-50 border border-emerald-300 px-3 py-1.5 rounded-xl shadow-xs">
-                                <span class="text-[9px] uppercase font-extrabold text-emerald-700 block">Day Sales</span>
-                                <span class="text-xs sm:text-sm font-black text-emerald-800 font-display">PKR ${day.daySale.toLocaleString()}</span>
-                            </div>
-                        </div>
-
-                        <!-- Orders of this specific day (no mixing) -->
-                        <div class="p-3 space-y-2.5 bg-slate-50/50">
-                            ${day.orders.map(o => renderModalOrderCard(o)).join('')}
-                        </div>
-                    </div>
-                `).join('');
+                renderWeeklyDaysPills();
+                renderWeeklyModalOrders();
             } else {
-                // Today scope list (direct clean cards, no dropdown)
-                listContainer.innerHTML = targetOrders.map(o => renderModalOrderCard(o)).join('');
+                if (pillsBar) pillsBar.classList.add('hidden');
+                
+                const totalCylinders = targetOrders.reduce((acc, o) => acc + (o.quantity || 1), 0);
+                const totalSaleVal = targetOrders.reduce((acc, o) => acc + (o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))), 0);
+
+                document.getElementById('metricModalCount').textContent = `${targetOrders.length} Bookings (${totalCylinders} Cylinders)`;
+                document.getElementById('metricModalTotalAmount').textContent = `Total: PKR ${totalSaleVal.toLocaleString()}`;
+
+                if (targetOrders.length === 0) {
+                    listContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-[#f8fafc] rounded-2xl border border-dashed border-[#cbd7eb]">No orders recorded for today yet.</div>`;
+                } else {
+                    listContainer.innerHTML = targetOrders.map(o => renderModalOrderCard(o)).join('');
+                }
             }
 
             const modal = document.getElementById('metricListModal');
