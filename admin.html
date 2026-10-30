@@ -465,6 +465,26 @@
                     </div>
                 </div>
 
+                <!-- WEEKLY REPORT DOWNLOAD CARD -->
+                <div class="bg-gradient-to-r from-[#eef3fb] via-[#f8fafc] to-[#eef3fb] border border-[#cbd7eb] rounded-3xl p-4 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-[#15387C] text-[#F6AD3A] flex items-center justify-center text-base shadow-sm shrink-0">
+                            <i class="fa-solid fa-file-excel"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="font-black text-xs text-[#15387C]">Weekly Sales & Orders Report</h4>
+                                <span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.2 rounded">CSV / Excel</span>
+                            </div>
+                            <p class="text-[10.5px] text-slate-500 font-medium mt-0.5">Summary of all bookings, revenue & delivery status</p>
+                        </div>
+                    </div>
+                    <button onclick="downloadWeeklyReport()" class="bg-[#15387C] hover:bg-[#0b1d42] active:scale-95 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 border border-[#15387C] transition shrink-0">
+                        <i class="fa-solid fa-cloud-arrow-down text-[#F6AD3A] text-xs"></i>
+                        <span>Download</span>
+                    </button>
+                </div>
+
                 <!-- QUICK RECENT ORDERS STREAM -->
                 <div class="space-y-2.5">
                     <div class="flex items-center justify-between">
@@ -549,9 +569,15 @@
                         </h2>
                         <p class="text-[11px] text-[#64748b]">All customer records & status</p>
                     </div>
-                    <span id="allOrdersTotalBadge" class="bg-[#eef3fb] text-[#15387C] font-black text-xs px-2.5 py-1 rounded-xl border border-[#cbd7eb]">
-                        0 Total
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="downloadWeeklyReport()" class="bg-[#15387C] hover:bg-[#0b1d42] active:scale-95 text-white font-bold text-xs px-2.5 py-1 rounded-xl border border-[#cbd7eb] flex items-center gap-1 shadow-sm transition">
+                            <i class="fa-solid fa-file-arrow-down text-[#F6AD3A] text-xs"></i>
+                            <span>Weekly Report</span>
+                        </button>
+                        <span id="allOrdersTotalBadge" class="bg-[#eef3fb] text-[#15387C] font-black text-xs px-2.5 py-1 rounded-xl border border-[#cbd7eb]">
+                            0 Total
+                        </span>
+                    </div>
                 </div>
 
                 <!-- SEARCH & FILTER BAR -->
@@ -867,10 +893,16 @@
                     <button type="button" onclick="closeMetricListModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition">
                         Close
                     </button>
-                    <button type="button" onclick="switchToFilteredOrdersTab()" class="px-4 py-2 rounded-xl text-xs font-black bg-[#15387C] hover:bg-[#0b1d42] text-white shadow-sm flex items-center gap-1.5 transition">
-                        <span>Open in All Orders Tab</span>
-                        <i class="fa-solid fa-arrow-right text-[10px] text-[#F6AD3A]"></i>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="downloadMetricReport()" class="px-3 py-2 rounded-xl text-xs font-extrabold bg-[#eef3fb] text-[#15387C] border border-[#cbd7eb] hover:bg-[#dce6f7] flex items-center gap-1.5 transition active:scale-95">
+                            <i class="fa-solid fa-file-arrow-down text-[#F6AD3A]"></i>
+                            <span>Export CSV</span>
+                        </button>
+                        <button type="button" onclick="switchToFilteredOrdersTab()" class="px-4 py-2 rounded-xl text-xs font-black bg-[#15387C] hover:bg-[#0b1d42] text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
+                            <span>Open in All Orders</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-[#F6AD3A]"></i>
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -2372,6 +2404,107 @@
             const hr = Math.floor(min / 60);
             if (hr < 24) return `${hr}h ago`;
             return `${Math.floor(hr / 24)}d ago`;
+        }
+
+        // ==========================================
+        // WEEKLY REPORT DOWNLOAD (EXCEL / CSV FORMAT)
+        // ==========================================
+        function downloadWeeklyReport() {
+            const now = new Date();
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
+            
+            // Get orders from this week
+            let weeklyList = orders.filter(o => {
+                if (o.status === 'cancelled') return false;
+                const t = new Date(o.createdAt).getTime();
+                return t >= startOfWeek;
+            });
+
+            // If empty, fallback to last 7 days of orders
+            if (weeklyList.length === 0) {
+                const sevenDaysAgo = now.getTime() - (7 * 86400000);
+                weeklyList = orders.filter(o => new Date(o.createdAt).getTime() >= sevenDaysAgo);
+            }
+
+            if (weeklyList.length === 0) {
+                weeklyList = orders;
+            }
+
+            generateAndDownloadCsv(weeklyList, "Weekly");
+        }
+
+        function downloadMetricReport() {
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
+
+            const targetOrders = orders.filter(o => {
+                if (o.status === 'cancelled') return false;
+                const t = new Date(o.createdAt).getTime();
+                if (activeMetricScope === 'today') return t >= startOfToday;
+                if (activeMetricScope === 'week') return t >= startOfWeek;
+                return true;
+            });
+
+            generateAndDownloadCsv(targetOrders.length ? targetOrders : orders, activeMetricScope === 'today' ? "Today" : "Weekly");
+        }
+
+        function generateAndDownloadCsv(orderList, reportTitle) {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const totalOrders = orderList.length;
+            const totalCylinders = orderList.reduce((acc, o) => acc + (o.quantity || 1), 0);
+            const totalRevenue = orderList.reduce((acc, o) => acc + (o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))), 0);
+            const domCylinders = orderList.filter(o => o.cylinderCode === 'domestic').reduce((acc, o) => acc + (o.quantity || 1), 0);
+            const comCylinders = orderList.filter(o => o.cylinderCode === 'commercial').reduce((acc, o) => acc + (o.quantity || 1), 0);
+
+            let csv = '\uFEFF'; // UTF-8 BOM for Microsoft Excel compatibility
+            csv += `MABRIX ENTERPRISES - ${reportTitle.toUpperCase()} SALES & ORDERS REPORT\n`;
+            csv += `Generated On:,"${dateStr} ${timeStr}"\n`;
+            csv += `Total Bookings:,${totalOrders}\n`;
+            csv += `Total Cylinders Sold:,${totalCylinders} (${domCylinders} Domestic 10Kg, ${comCylinders} Commercial 45Kg)\n`;
+            csv += `Total Revenue (PKR):,${totalRevenue}\n\n`;
+
+            // Column Headers
+            csv += `"Order ID","Date","Time","Customer Name","Phone","Delivery Area","Delivery Address","Cylinder Type","Quantity","Price Per Unit (PKR)","Total Amount (PKR)","Schedule","Payment Method","Status"\n`;
+
+            orderList.forEach(o => {
+                const d = new Date(o.createdAt);
+                const orderDate = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+                const orderTime = !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const unitPrice = o.pricePerUnit || (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic);
+                const total = o.totalPrice || (o.quantity * unitPrice);
+
+                csv += `"${o.id || ''}",`;
+                csv += `"${orderDate}",`;
+                csv += `"${orderTime}",`;
+                csv += `"${(o.customerName || '').replace(/"/g, '""')}",`;
+                csv += `"${o.phone || ''}",`;
+                csv += `"${(o.area || '').replace(/"/g, '""')}",`;
+                csv += `"${(o.address || '').replace(/"/g, '""')}",`;
+                csv += `"${(o.cylinderType || '').replace(/"/g, '""')}",`;
+                csv += `${o.quantity || 1},`;
+                csv += `${unitPrice},`;
+                csv += `${total},`;
+                csv += `"${(o.deliveryTime || o.deliverySchedule || '').replace(/"/g, '""')}",`;
+                csv += `"${(o.paymentMethod || '').replace(/"/g, '""')}",`;
+                csv += `"${(o.status || '').toUpperCase()}"\n`;
+            });
+
+            // Trigger instant download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Mabrix_${reportTitle}_Report_${dateStr}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast(`${reportTitle} Report Downloaded (.CSV)!`);
         }
 
         function showToast(msg) {
