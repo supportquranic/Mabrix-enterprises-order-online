@@ -91,7 +91,7 @@ let ordersStore = [
     },
     {
         id: "MBX-882135",
-        customerName: "Malik Usman (Pizza Crust)",
+        customerName: "Malik Usman (Al-Madina Commercial Kitchen)",
         phone: "03028887766",
         area: "Khyaban-e-Amin",
         address: "Block N, Commercial Sector, Khyaban-e-Amin",
@@ -159,7 +159,7 @@ let ordersStore = [
     },
     {
         id: "MBX-882131",
-        customerName: "Ali Raza (Burger Town)",
+        customerName: "Ali Raza (Shanwari Restaurant)",
         phone: "03223344556",
         area: "Bahria Town",
         address: "Commercial Area, Sector B, Bahria Town",

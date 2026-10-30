@@ -927,7 +927,7 @@
                 ? "within 24 hours" 
                 : "as soon as possible";
 
-            let text = `Salam my name is ${name} , i need ${cylinderDesc} ${timeDesc} at ${area} ${address}. please confirm my order with ok .`;
+            let text = `as Salam my name is ${name} , i need ${cylinderDesc} ${timeDesc} at ${area} ${address}. please confirm my order with ok .`;
 
             if (paymentMethod.includes('Bank Transfer')) {
                 text += `\n\n*(Payment Method: Bank Transfer - PKR ${totalBill.toLocaleString()}/- | Askari Bank A/C: ${CONFIG.accountNumber})*`;
