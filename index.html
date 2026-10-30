@@ -368,7 +368,7 @@
         </main>
 
         <!-- FOOTER WITH DESIGNED BY TALHA MUZAMMIL (WITH WHATSAPP 03294355677) -->
-        <footer class="px-4 py-3 bg-[#ffffff] border-t border-[#e2e8f0] text-center text-xs">
+        <footer class="px-4 py-3.5 bg-[#ffffff] border-t border-[#e2e8f0] text-center text-xs">
             <!-- Designed by Talha Muzammil with WhatsApp button -->
             <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
                 <span>Designed by</span>
@@ -380,11 +380,6 @@
                 >
                     <i class="fa-brands fa-whatsapp text-[#25D366] text-xs"></i>
                     <span>Talha Muzammil</span>
-                </a>
-                <span class="text-slate-300">•</span>
-                <a href="admin.html" title="Open Admin Dashboard" class="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-[#15387C] font-bold px-1 py-0.5 rounded transition">
-                    <i class="fa-solid fa-lock text-[9px]"></i>
-                    <span>Admin</span>
                 </a>
             </div>
         </footer>
@@ -784,21 +779,13 @@
         // Quick WhatsApp Order
         function quickOrderWhatsApp(type) {
             const isDomestic = (type === 'domestic');
-            const itemName = isDomestic ? "Domestic LPG Cylinder (10 Kg)" : "Commercial LPG Cylinder (45 Kg)";
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
+            const cylinderDesc = (qty === 1) 
+                ? (isDomestic ? "a domestic cylinder" : "a commercial cylinder")
+                : `${qty} ${isDomestic ? "domestic cylinders" : "commercial cylinders"}`;
 
-            const text = 
-`*NEW LPG ORDER - MABRIX ENTERPRISES*
-----------------------------------------
-*Item:* ${itemName}
-*Quantity:* ${qty} Cylinder(s)
-*Delivery Area:* ${state.selectedArea}
-*Hotline:* 0332 4499022
-----------------------------------------
-Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemName}* for *${state.selectedArea}*. Please confirm delivery schedule.`;
-
-            const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
+            const text = `Salam , i need ${cylinderDesc} as soon as possible at ${state.selectedArea}. please confirm my order with ok .`;
+            openWhatsAppDirect(CONFIG.whatsappNumber, text);
         }
 
         // Open detailed booking modal
@@ -883,33 +870,20 @@ Hello Mabrix Enterprises, I would like to order *${qty} cylinder(s)* of *${itemN
                 return;
             }
 
-            let text = 
-`*NEW LPG ORDER - MABRIX ENTERPRISES*
-========================================
-*Customer Name:* ${name}
-*Contact Phone:* ${phone}
-*Delivery Area:* ${area}
-*Delivery Address:* ${address}
-*Preferred Time:* ${deliveryTime}
-*Payment Method:* ${paymentMethod}
-----------------------------------------
-*ORDER ITEMS:*
-• ${itemName} x ${qty} Cylinder(s)
-*Unit Price:* PKR ${unitPrice.toLocaleString()}/-
-*Total Amount:* PKR ${totalBill.toLocaleString()}/-
-========================================`;
+            const cylinderDesc = (qty === 1) 
+                ? (isDomestic ? "a domestic cylinder" : "a commercial cylinder")
+                : `${qty} ${isDomestic ? "domestic cylinders" : "commercial cylinders"}`;
+            const timeDesc = deliveryTime.toLowerCase().includes("24") 
+                ? "within 24 hours" 
+                : "as soon as possible";
+
+            let text = `Salam my name is ${name} , i need ${cylinderDesc} ${timeDesc} at ${area} ${address}. please confirm my order with ok .`;
 
             if (paymentMethod.includes('Bank Transfer')) {
-                text += `
-*BANK TRANSFER DETAILS (ASKARI BANK):*
-Account Title: ${CONFIG.accountTitle}
-Account Number: ${CONFIG.accountNumber}
-IBAN: ${CONFIG.iban}
-*(Receipt screenshot will be attached after transfer)*
-========================================`;
+                text += `\n\n*(Payment Method: Bank Transfer - PKR ${totalBill.toLocaleString()}/- | Askari Bank A/C: ${CONFIG.accountNumber})*`;
+            } else {
+                text += `\n\n*(Payment: Cash on Delivery - PKR ${totalBill.toLocaleString()}/-)*`;
             }
-
-            text += `\nPlease confirm and dispatch my order. Thank you!`;
 
             // Record order in backend & local storage for Admin Dashboard
             try {

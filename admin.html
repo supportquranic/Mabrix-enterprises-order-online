@@ -285,11 +285,15 @@
 
     <div class="app-wrapper flex flex-col justify-between">
         
-        <!-- TOP STICKY HEADER: ONLY LOGO -->
-        <header class="sticky top-0 z-40 glass-header px-4 py-3.5 flex items-center justify-center">
+        <!-- TOP STICKY HEADER: LOGO + MANUAL ORDER BUTTON -->
+        <header class="sticky top-0 z-40 glass-header px-4 py-3 flex items-center justify-between">
             <h1 class="font-display font-black text-2xl text-[#15387C] tracking-tight uppercase leading-none">
                 MABR<span class="relative inline-block">I<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#F6AD3A] rounded-full"></span></span>X
             </h1>
+            <button onclick="openManualOrderModal()" class="bg-[#15387C] hover:bg-[#0b1d42] active:scale-95 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5 border border-[#15387C] transition">
+                <i class="fa-solid fa-plus text-[#F6AD3A] text-xs"></i>
+                <span>Add Order</span>
+            </button>
         </header>
 
         <!-- MAIN CONTENT (DYNAMIC TABS) -->
@@ -298,13 +302,27 @@
             <!-- ========================================== -->
             <!-- TAB 1: DASHBOARD VIEW (MATCHING REFERENCE) -->
             <!-- ========================================== -->
-            <section id="tabDashboard" class="space-y-4">
+            <section id="tabDashboard" class="space-y-3.5">
                 
-                <!-- 4 QUICK METRIC CARDS (2x2 GRID - EXACT LAYOUT AS IN REFERENCE) -->
+                <!-- PROMINENT MANUAL ORDER CALLOUT BANNER -->
+                <button onclick="openManualOrderModal()" class="w-full bg-gradient-to-r from-[#15387C] to-[#0b1d42] hover:opacity-95 text-white font-black text-xs py-3 px-4 rounded-2xl shadow-md flex items-center justify-between transition active:scale-[0.99] border border-[#cbd7eb]">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-[#F6AD3A] text-[#15387C] flex items-center justify-center text-xs font-black shadow-sm">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <div class="text-left">
+                            <span class="font-extrabold text-xs block leading-tight">Place Manual Order</span>
+                            <span class="text-[10px] text-slate-300 font-medium block">Phone, WhatsApp or Walk-in Booking</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] bg-white/10 text-[#F6AD3A] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1">New <i class="fa-solid fa-chevron-right text-[8px]"></i></span>
+                </button>
+
+                <!-- 4 QUICK METRIC CARDS (2x2 GRID - CLICK TO OPEN FULL LIST) -->
                 <div class="grid grid-cols-2 gap-3">
                     
                     <!-- CARD 1: TODAY TOTAL ORDERS -->
-                    <div class="metric-card">
+                    <div onclick="openMetricOrdersList('today', 'Today\'s Total Orders')" class="metric-card cursor-pointer hover:border-[#15387C] hover:shadow-md transition active:scale-95 group">
                         <div class="flex items-center justify-between mb-2">
                             <div class="w-8 h-8 rounded-xl bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-boxes-stacked"></i>
@@ -318,10 +336,11 @@
                             <span class="text-xl sm:text-2xl font-black text-[#15387C] font-display" id="statTodayOrders">0</span>
                             <span class="text-[11px] text-[#64748b] font-bold">Cylinders</span>
                         </div>
+                        <span class="text-[9.5px] text-[#15387C] group-hover:text-[#F6AD3A] font-extrabold flex items-center justify-end gap-1 mt-2">View List <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                     </div>
 
                     <!-- CARD 2: TODAY'S SALE -->
-                    <div class="metric-card">
+                    <div onclick="openMetricOrdersList('today', 'Today\'s Sales Breakdown')" class="metric-card cursor-pointer hover:border-[#F6AD3A] hover:shadow-md transition active:scale-95 group">
                         <div class="flex items-center justify-between mb-2">
                             <div class="w-8 h-8 rounded-xl bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-coins"></i>
@@ -334,10 +353,11 @@
                         <div class="flex items-baseline gap-1 mt-0.5">
                             <span class="text-lg sm:text-xl font-black text-[#F6AD3A] font-display" id="statTodaySale">PKR 0</span>
                         </div>
+                        <span class="text-[9.5px] text-[#15387C] group-hover:text-[#F6AD3A] font-extrabold flex items-center justify-end gap-1 mt-2">View List <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                     </div>
 
                     <!-- CARD 3: WEEKLY ORDERS -->
-                    <div class="metric-card">
+                    <div onclick="openMetricOrdersList('week', 'Weekly Orders List')" class="metric-card cursor-pointer hover:border-[#15387C] hover:shadow-md transition active:scale-95 group">
                         <div class="flex items-center justify-between mb-2">
                             <div class="w-8 h-8 rounded-xl bg-[#eef3fb] text-[#15387C] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-calendar-week"></i>
@@ -351,10 +371,11 @@
                             <span class="text-xl sm:text-2xl font-black text-[#15387C] font-display" id="statWeeklyOrders">0</span>
                             <span class="text-[11px] text-[#64748b] font-bold">Total</span>
                         </div>
+                        <span class="text-[9.5px] text-[#15387C] group-hover:text-[#F6AD3A] font-extrabold flex items-center justify-end gap-1 mt-2">View List <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                     </div>
 
                     <!-- CARD 4: WEEKLY SALE -->
-                    <div class="metric-card">
+                    <div onclick="openMetricOrdersList('week', 'Weekly Sales Breakdown')" class="metric-card cursor-pointer hover:border-[#F6AD3A] hover:shadow-md transition active:scale-95 group">
                         <div class="flex items-center justify-between mb-2">
                             <div class="w-8 h-8 rounded-xl bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-chart-line"></i>
@@ -367,6 +388,7 @@
                         <div class="flex items-baseline gap-1 mt-0.5">
                             <span class="text-lg sm:text-xl font-black text-[#15387C] font-display" id="statWeeklySale">PKR 0</span>
                         </div>
+                        <span class="text-[9.5px] text-[#15387C] group-hover:text-[#F6AD3A] font-extrabold flex items-center justify-end gap-1 mt-2">View List <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                     </div>
 
                 </div>
@@ -613,6 +635,10 @@
                             Save Rates & Update Sales
                         </button>
 
+                        <button onclick="reloadDemoData()" class="w-full mt-2 bg-[#f8fafc] hover:bg-[#eef3fb] text-[#15387C] font-bold text-xs py-2.5 rounded-xl border border-[#cbd7eb] shadow-sm flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-database text-[#F6AD3A]"></i> Reload Demo Data (10 Realistic Orders)
+                        </button>
+
                         <button onclick="lockAdmin()" class="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
                             <i class="fa-solid fa-lock text-[#F6AD3A]"></i> Lock Admin Dashboard (PIN: 9022)
                         </button>
@@ -631,6 +657,224 @@
             </section>
 
         </main>
+
+        <!-- ============================================================== -->
+        <!-- MANUAL ORDER MODAL (POPUP TO BOOK ORDERS DIRECTLY FROM ADMIN) -->
+        <!-- ============================================================== -->
+        <div id="manualOrderModal" class="fixed inset-0 z-50 bg-[#070c1a]/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300 hidden opacity-0 pointer-events-none">
+            <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border-2 border-[#15387C] flex flex-col max-h-[92vh] overflow-hidden transform transition-all duration-300 translate-y-8" id="manualOrderModalContent">
+                
+                <!-- Modal Header -->
+                <div class="px-5 py-4 bg-[#15387C] text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center font-black text-sm">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black font-display tracking-tight text-white leading-tight">Place Manual Order</h3>
+                            <p class="text-[10px] text-[#cbd7eb] font-medium">Direct phone, WhatsApp or walk-in booking</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeManualOrderModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body (Scrollable) -->
+                <form id="manualOrderForm" onsubmit="submitManualBooking(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs text-slate-700">
+                    
+                    <!-- Customer Name -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">
+                            Customer Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="manualCustName" 
+                            required 
+                            placeholder="e.g. Imran Khan / Bahria Resident" 
+                            class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none focus:border-[#15387C]"
+                        >
+                    </div>
+
+                    <!-- Customer Phone -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">
+                            Customer Phone / WhatsApp <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="manualCustPhone" 
+                            required 
+                            placeholder="e.g. 03001234567" 
+                            class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none focus:border-[#15387C]"
+                        >
+                    </div>
+
+                    <!-- Delivery Area -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">
+                            Delivery Area <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="manualCustArea" 
+                            class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none focus:border-[#15387C]"
+                        >
+                            <option value="Bahria Town" selected>Bahria Town Lahore</option>
+                            <option value="Lake City">Lake City Lahore</option>
+                            <option value="Khyaban-e-Amin">Khyaban-e-Amin</option>
+                            <option value="Wapda Town">Wapda Town Lahore</option>
+                            <option value="Valencia Town">Valencia Town Lahore</option>
+                            <option value="Other Area">Other Area / Lahore</option>
+                        </select>
+                    </div>
+
+                    <!-- Delivery Address -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">
+                            House / Street Address <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="manualCustAddress" 
+                            required 
+                            placeholder="e.g. House No. 56H, Sector C" 
+                            class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none focus:border-[#15387C]"
+                        >
+                    </div>
+
+                    <!-- Cylinder Type Selection -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1.5">
+                            Select Cylinder Type <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div 
+                                id="manualOptDomestic" 
+                                onclick="selectManualCylinderType('domestic')" 
+                                class="cursor-pointer border-2 border-[#15387C] bg-[#eef3fb] rounded-xl p-2.5 text-center transition select-none"
+                            >
+                                <i class="fa-solid fa-house-chimney text-[#15387C] text-sm mb-1 block"></i>
+                                <span class="font-extrabold text-[#15387C] block text-xs">Domestic (10 Kg)</span>
+                                <span class="text-[10px] text-slate-600 font-bold block mt-0.5" id="manualDomPriceLabel">PKR 5,000</span>
+                            </div>
+
+                            <div 
+                                id="manualOptCommercial" 
+                                onclick="selectManualCylinderType('commercial')" 
+                                class="cursor-pointer border-2 border-[#cbd7eb] bg-[#f8fafc] hover:bg-[#fef7ec] rounded-xl p-2.5 text-center transition select-none"
+                            >
+                                <i class="fa-solid fa-fire-burner text-[#F6AD3A] text-sm mb-1 block"></i>
+                                <span class="font-extrabold text-slate-700 block text-xs">Commercial (45 Kg)</span>
+                                <span class="text-[10px] text-slate-600 font-bold block mt-0.5" id="manualComPriceLabel">PKR 10,000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quantity & Delivery Schedule -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Quantity</label>
+                            <div class="flex items-center border border-[#cbd7eb] rounded-xl overflow-hidden bg-[#f8fafc]">
+                                <button type="button" onclick="updateManualQty(-1)" class="w-9 h-8 bg-slate-200 hover:bg-slate-300 font-black text-slate-700 flex items-center justify-center">-</button>
+                                <span id="manualQtyDisplay" class="flex-1 text-center font-black text-xs text-[#15387C]">1</span>
+                                <button type="button" onclick="updateManualQty(1)" class="w-9 h-8 bg-slate-200 hover:bg-slate-300 font-black text-slate-700 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Schedule</label>
+                            <select 
+                                id="manualSchedule" 
+                                class="w-full h-8 bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-2 text-xs font-semibold text-[#15387C] focus:outline-none"
+                            >
+                                <option value="today">Today (ASAP)</option>
+                                <option value="tomorrow">Tomorrow (24h)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Payment Method</label>
+                        <select 
+                            id="manualPaymentMethod" 
+                            class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none"
+                        >
+                            <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
+                            <option value="Bank Transfer (Askari Bank Ltd)">Bank Transfer (Askari Bank Ltd)</option>
+                        </select>
+                    </div>
+
+                    <!-- Total Amount Summary Box -->
+                    <div class="bg-[#fef7ec] border border-[#f8d294] rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase block">Total Payable</span>
+                            <span class="text-sm font-black text-[#15387C] font-display" id="manualTotalPayable">PKR 5,000</span>
+                        </div>
+                        <span class="text-[10px] bg-[#15387C] text-[#F6AD3A] font-black px-2 py-1 rounded-md uppercase">Calculated</span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit" 
+                        class="w-full bg-[#15387C] hover:bg-[#0b1d42] active:scale-95 text-white font-black text-xs py-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition"
+                    >
+                        <i class="fa-solid fa-circle-check text-[#F6AD3A]"></i>
+                        <span>Confirm & Book Order</span>
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- METRIC ORDERS LIST MODAL (OPENS FULL LIST ON CLICKING 4 BOXES) -->
+        <!-- ============================================================== -->
+        <div id="metricListModal" class="fixed inset-0 z-50 bg-[#070c1a]/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300 hidden opacity-0 pointer-events-none">
+            <div class="w-full max-w-xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border-2 border-[#15387C] flex flex-col max-h-[92vh] overflow-hidden transform transition-all duration-300 translate-y-8" id="metricListModalContent">
+                
+                <!-- Modal Header -->
+                <div class="px-5 py-4 bg-[#15387C] text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center font-black text-sm">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black font-display tracking-tight text-white leading-tight" id="metricModalTitle">Orders Breakdown</h3>
+                            <p class="text-[10px] text-[#cbd7eb] font-medium" id="metricModalSubtitle">Complete itemized list</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeMetricListModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Summary Bar -->
+                <div class="bg-[#eef3fb] px-5 py-2.5 border-b border-[#cbd7eb] flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-600" id="metricModalCount">0 Orders</span>
+                    <span class="font-black text-[#15387C] font-display" id="metricModalTotalAmount">Total: PKR 0</span>
+                </div>
+
+                <!-- Modal Content (Scrollable Orders List) -->
+                <div id="metricModalOrdersList" class="p-4 overflow-y-auto space-y-3 max-h-[62vh]">
+                    <!-- Rendered dynamically -->
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="p-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+                    <button type="button" onclick="closeMetricListModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition">
+                        Close
+                    </button>
+                    <button type="button" onclick="switchToFilteredOrdersTab()" class="px-4 py-2 rounded-xl text-xs font-black bg-[#15387C] hover:bg-[#0b1d42] text-white shadow-sm flex items-center gap-1.5 transition">
+                        <span>Open in All Orders Tab</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] text-[#F6AD3A]"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
 
         <!-- ============================================================== -->
         <!-- FLOATING DARK BOTTOM NAVBAR (EXACT STYLE AS IN REFERENCE IMAGE) -->
@@ -941,7 +1185,7 @@
             const now = new Date();
             orders = [
                 {
-                    id: "MBX-748921",
+                    id: "MBX-882140",
                     customerName: "Imran Khan",
                     phone: "03001234567",
                     area: "Bahria Town",
@@ -955,10 +1199,10 @@
                     deliverySchedule: "today",
                     paymentMethod: "Cash on Delivery (COD)",
                     status: "pending",
-                    createdAt: new Date(now.getTime() - 25 * 60000).toISOString()
+                    createdAt: new Date(now.getTime() - 20 * 60000).toISOString()
                 },
                 {
-                    id: "MBX-748920",
+                    id: "MBX-882139",
                     customerName: "Tariq Mahmood (Cafe Royal)",
                     phone: "03339876543",
                     area: "Lake City",
@@ -972,10 +1216,44 @@
                     deliverySchedule: "tomorrow",
                     paymentMethod: "Bank Transfer (Askari Bank Ltd)",
                     status: "pending",
-                    createdAt: new Date(now.getTime() - 90 * 60000).toISOString()
+                    createdAt: new Date(now.getTime() - 55 * 60000).toISOString()
                 },
                 {
-                    id: "MBX-748919",
+                    id: "MBX-882138",
+                    customerName: "Dr. Naveed Ashraf",
+                    phone: "03014499011",
+                    area: "Valencia Town",
+                    address: "Plot 18, Block H, Valencia Town",
+                    cylinderType: "Commercial Cylinder (45 Kg)",
+                    cylinderCode: "commercial",
+                    quantity: 1,
+                    pricePerUnit: RATES.commercial,
+                    totalPrice: RATES.commercial,
+                    deliveryTime: "As Soon As Possible",
+                    deliverySchedule: "today",
+                    paymentMethod: "Cash on Delivery (COD)",
+                    status: "dispatched",
+                    createdAt: new Date(now.getTime() - 110 * 60000).toISOString()
+                },
+                {
+                    id: "MBX-882137",
+                    customerName: "Zainab Fatima",
+                    phone: "03239988771",
+                    area: "Lake City",
+                    address: "House 77, Golf View, Lake City",
+                    cylinderType: "Domestic Cylinder (10 Kg)",
+                    cylinderCode: "domestic",
+                    quantity: 1,
+                    pricePerUnit: RATES.domestic,
+                    totalPrice: RATES.domestic,
+                    deliveryTime: "As Soon As Possible",
+                    deliverySchedule: "today",
+                    paymentMethod: "Cash on Delivery (COD)",
+                    status: "pending",
+                    createdAt: new Date(now.getTime() - 160 * 60000).toISOString()
+                },
+                {
+                    id: "MBX-882136",
                     customerName: "Ayesha Bilal",
                     phone: "03215554321",
                     area: "Wapda Town",
@@ -989,10 +1267,358 @@
                     deliverySchedule: "today",
                     paymentMethod: "Cash on Delivery (COD)",
                     status: "delivered",
-                    createdAt: new Date(now.getTime() - 4 * 3600000).toISOString()
+                    createdAt: new Date(now.getTime() - 280 * 60000).toISOString()
+                },
+                {
+                    id: "MBX-882135",
+                    customerName: "Malik Usman (Pizza Crust)",
+                    phone: "03028887766",
+                    area: "Khyaban-e-Amin",
+                    address: "Block N, Commercial Sector, Khyaban-e-Amin",
+                    cylinderType: "Commercial Cylinder (45 Kg)",
+                    cylinderCode: "commercial",
+                    quantity: 3,
+                    pricePerUnit: RATES.commercial,
+                    totalPrice: RATES.commercial * 3,
+                    deliveryTime: "Within 24 Hours",
+                    deliverySchedule: "yesterday",
+                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
+                    status: "delivered",
+                    createdAt: new Date(now.getTime() - 26 * 3600000).toISOString()
+                },
+                {
+                    id: "MBX-882134",
+                    customerName: "Kashif Riaz",
+                    phone: "03451122334",
+                    area: "Bahria Town",
+                    address: "Villa 104, Jasmine Block, Bahria Town",
+                    cylinderType: "Domestic Cylinder (10 Kg)",
+                    cylinderCode: "domestic",
+                    quantity: 2,
+                    pricePerUnit: RATES.domestic,
+                    totalPrice: RATES.domestic * 2,
+                    deliveryTime: "As Soon As Possible",
+                    deliverySchedule: "yesterday",
+                    paymentMethod: "Cash on Delivery (COD)",
+                    status: "delivered",
+                    createdAt: new Date(now.getTime() - 32 * 3600000).toISOString()
+                },
+                {
+                    id: "MBX-882133",
+                    customerName: "Haji Abdul Rehman",
+                    phone: "03006655443",
+                    area: "Wapda Town",
+                    address: "Shop 5, Main Grid Road, Wapda Town",
+                    cylinderType: "Commercial Cylinder (45 Kg)",
+                    cylinderCode: "commercial",
+                    quantity: 2,
+                    pricePerUnit: RATES.commercial,
+                    totalPrice: RATES.commercial * 2,
+                    deliveryTime: "Within 24 Hours",
+                    deliverySchedule: "2 days ago",
+                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
+                    status: "delivered",
+                    createdAt: new Date(now.getTime() - 52 * 3600000).toISOString()
+                },
+                {
+                    id: "MBX-882132",
+                    customerName: "Zubair Ahmed",
+                    phone: "03314455667",
+                    area: "Valencia Town",
+                    address: "House 12-A, Block K, Valencia Town",
+                    cylinderType: "Domestic Cylinder (10 Kg)",
+                    cylinderCode: "domestic",
+                    quantity: 1,
+                    pricePerUnit: RATES.domestic,
+                    totalPrice: RATES.domestic,
+                    deliveryTime: "As Soon As Possible",
+                    deliverySchedule: "3 days ago",
+                    paymentMethod: "Cash on Delivery (COD)",
+                    status: "delivered",
+                    createdAt: new Date(now.getTime() - 76 * 3600000).toISOString()
+                },
+                {
+                    id: "MBX-882131",
+                    customerName: "Ali Raza (Burger Town)",
+                    phone: "03223344556",
+                    area: "Bahria Town",
+                    address: "Commercial Area, Sector B, Bahria Town",
+                    cylinderType: "Commercial Cylinder (45 Kg)",
+                    cylinderCode: "commercial",
+                    quantity: 2,
+                    pricePerUnit: RATES.commercial,
+                    totalPrice: RATES.commercial * 2,
+                    deliveryTime: "Within 24 Hours",
+                    deliverySchedule: "4 days ago",
+                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
+                    status: "delivered",
+                    createdAt: new Date(now.getTime() - 100 * 3600000).toISOString()
                 }
             ];
             localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+        }
+
+        function reloadDemoData() {
+            initDefaultOrders();
+            renderAll();
+            showToast("Reloaded 10 Demo Orders Successfully!");
+        }
+
+        // ==========================================
+        // MANUAL ORDER MODAL CONTROLLER
+        // ==========================================
+        let manualSelectedCylinder = 'domestic';
+        let manualSelectedQty = 1;
+
+        function openManualOrderModal() {
+            manualSelectedCylinder = 'domestic';
+            manualSelectedQty = 1;
+            const qtyDisp = document.getElementById('manualQtyDisplay');
+            if (qtyDisp) qtyDisp.textContent = '1';
+            
+            const custName = document.getElementById('manualCustName');
+            if (custName) custName.value = '';
+            
+            const custPhone = document.getElementById('manualCustPhone');
+            if (custPhone) custPhone.value = '';
+            
+            const custAddress = document.getElementById('manualCustAddress');
+            if (custAddress) custAddress.value = '';
+
+            const domLabel = document.getElementById('manualDomPriceLabel');
+            if (domLabel) domLabel.textContent = `PKR ${RATES.domestic.toLocaleString()}`;
+
+            const comLabel = document.getElementById('manualComPriceLabel');
+            if (comLabel) comLabel.textContent = `PKR ${RATES.commercial.toLocaleString()}`;
+
+            selectManualCylinderType('domestic');
+
+            const modal = document.getElementById('manualOrderModal');
+            const content = document.getElementById('manualOrderModalContent');
+            if (modal && content) {
+                modal.classList.remove('hidden', 'pointer-events-none');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('translate-y-8');
+                }, 10);
+            }
+        }
+
+        function closeManualOrderModal() {
+            const modal = document.getElementById('manualOrderModal');
+            const content = document.getElementById('manualOrderModalContent');
+            if (modal && content) {
+                modal.classList.add('opacity-0');
+                content.classList.add('translate-y-8');
+                setTimeout(() => {
+                    modal.classList.add('hidden', 'pointer-events-none');
+                }, 250);
+            }
+        }
+
+        function selectManualCylinderType(type) {
+            manualSelectedCylinder = type;
+            const optDom = document.getElementById('manualOptDomestic');
+            const optCom = document.getElementById('manualOptCommercial');
+            if (optDom && optCom) {
+                if (type === 'domestic') {
+                    optDom.className = "cursor-pointer border-2 border-[#15387C] bg-[#eef3fb] rounded-xl p-2.5 text-center transition select-none shadow-sm";
+                    optCom.className = "cursor-pointer border-2 border-[#cbd7eb] bg-[#f8fafc] hover:bg-[#fef7ec] rounded-xl p-2.5 text-center transition select-none";
+                } else {
+                    optCom.className = "cursor-pointer border-2 border-[#F6AD3A] bg-[#fef7ec] rounded-xl p-2.5 text-center transition select-none shadow-sm";
+                    optDom.className = "cursor-pointer border-2 border-[#cbd7eb] bg-[#f8fafc] hover:bg-[#eef3fb] rounded-xl p-2.5 text-center transition select-none";
+                }
+            }
+            recalculateManualTotal();
+        }
+
+        function updateManualQty(delta) {
+            manualSelectedQty = Math.max(1, Math.min(50, manualSelectedQty + delta));
+            const qtyDisp = document.getElementById('manualQtyDisplay');
+            if (qtyDisp) qtyDisp.textContent = manualSelectedQty;
+            recalculateManualTotal();
+        }
+
+        function recalculateManualTotal() {
+            const unitPrice = manualSelectedCylinder === 'commercial' ? RATES.commercial : RATES.domestic;
+            const total = unitPrice * manualSelectedQty;
+            const totalEl = document.getElementById('manualTotalPayable');
+            if (totalEl) totalEl.textContent = `PKR ${total.toLocaleString()}`;
+        }
+
+        async function submitManualBooking(e) {
+            if (e) e.preventDefault();
+            const name = (document.getElementById('manualCustName')?.value || '').trim();
+            const phone = (document.getElementById('manualCustPhone')?.value || '').trim();
+            const area = document.getElementById('manualCustArea')?.value || 'Bahria Town';
+            const address = (document.getElementById('manualCustAddress')?.value || '').trim();
+            const schedule = document.getElementById('manualSchedule')?.value || 'today';
+            const paymentMethod = document.getElementById('manualPaymentMethod')?.value || 'Cash on Delivery (COD)';
+
+            if (!name || !phone || !address) {
+                alert("Please fill in Customer Name, Phone, and Address.");
+                return;
+            }
+
+            const unitPrice = manualSelectedCylinder === 'commercial' ? RATES.commercial : RATES.domestic;
+            const total = unitPrice * manualSelectedQty;
+            const cylinderType = manualSelectedCylinder === 'commercial' ? "Commercial Cylinder (45 Kg)" : "Domestic Cylinder (10 Kg)";
+            const deliveryTime = schedule === 'today' ? "As Soon As Possible" : "Within 24 Hours";
+
+            const newOrder = {
+                id: "MBX-" + Math.floor(100000 + Math.random() * 900000),
+                customerName: name,
+                phone: phone,
+                area: area,
+                address: address,
+                cylinderType: cylinderType,
+                cylinderCode: manualSelectedCylinder,
+                quantity: manualSelectedQty,
+                pricePerUnit: unitPrice,
+                totalPrice: total,
+                deliveryTime: deliveryTime,
+                deliverySchedule: schedule,
+                paymentMethod: paymentMethod,
+                status: "pending",
+                createdAt: new Date().toISOString()
+            };
+
+            orders.unshift(newOrder);
+            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+
+            // Sync with backend API
+            try {
+                await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newOrder)
+                });
+            } catch(err){}
+
+            closeManualOrderModal();
+            triggerNewOrderAlert(newOrder);
+            renderAll();
+            showToast(`Manual Order #${newOrder.id} Booked!`);
+        }
+
+        // ==========================================
+        // METRIC LIST MODAL CONTROLLER (FOR ALL 4 CARDS)
+        // ==========================================
+        let activeMetricScope = 'today';
+        let activeMetricTitle = '';
+
+        function openMetricOrdersList(scope, title) {
+            activeMetricScope = scope;
+            activeMetricTitle = title;
+
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
+
+            const targetOrders = orders.filter(o => {
+                if (o.status === 'cancelled') return false;
+                const t = new Date(o.createdAt).getTime();
+                if (scope === 'today') return t >= startOfToday;
+                if (scope === 'week') return t >= startOfWeek;
+                return true;
+            });
+
+            document.getElementById('metricModalTitle').textContent = title;
+            document.getElementById('metricModalSubtitle').textContent = scope === 'today' ? "Orders placed today" : "Orders placed in the last 7 days";
+            
+            const totalCylinders = targetOrders.reduce((acc, o) => acc + (o.quantity || 1), 0);
+            const totalSaleVal = targetOrders.reduce((acc, o) => acc + (o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))), 0);
+
+            document.getElementById('metricModalCount').textContent = `${targetOrders.length} Bookings (${totalCylinders} Cylinders)`;
+            document.getElementById('metricModalTotalAmount').textContent = `Total: PKR ${totalSaleVal.toLocaleString()}`;
+
+            const listContainer = document.getElementById('metricModalOrdersList');
+            if (targetOrders.length === 0) {
+                listContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-[#f8fafc] rounded-2xl border border-dashed border-[#cbd7eb]">No orders recorded for this period yet.</div>`;
+            } else {
+                listContainer.innerHTML = targetOrders.map(o => `
+                    <div class="bg-white border border-[#cbd7eb] rounded-2xl p-3.5 shadow-sm space-y-2.5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-black text-[#15387C] font-display">${o.customerName}</span>
+                                    <span class="text-[9px] uppercase font-black px-1.5 py-0.5 rounded ${getStatusBadgeClass(o.status)}">${o.status}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono">${o.id} • ${formatDateTime(o.createdAt)}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-black text-[#15387C] font-display block">PKR ${(o.totalPrice || (o.quantity * (o.cylinderCode === 'commercial' ? RATES.commercial : RATES.domestic))).toLocaleString()}</span>
+                                <span class="text-[9px] text-slate-500 font-bold uppercase">${o.paymentMethod.includes('Bank') ? 'Askari Bank' : 'COD'}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#f8fafc] rounded-xl p-2 text-xs flex items-center justify-between border border-slate-100">
+                            <span class="font-bold text-slate-700">${o.quantity}x ${o.cylinderType}</span>
+                            <span class="text-[10.5px] font-bold text-[#15387C] bg-white px-2 py-0.5 rounded border border-[#cbd7eb]">${o.area}</span>
+                        </div>
+
+                        <div class="text-[11px] text-slate-600">
+                            <span class="font-bold text-slate-400 text-[10px] uppercase">Address: </span>
+                            <span>${o.address || 'Not specified'}</span>
+                        </div>
+
+                        <div class="pt-1 flex items-center justify-between gap-2 border-t border-slate-100">
+                            <div class="flex items-center gap-1.5">
+                                <a href="tel:${o.phone}" class="w-8 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] hover:bg-[#dce6f7] flex items-center justify-center text-xs font-bold border border-[#cbd7eb]" title="Call">
+                                    <i class="fa-solid fa-phone"></i>
+                                </a>
+                                <a href="https://wa.me/${cleanPhone(o.phone)}?text=${encodeURIComponent(`Hello ${o.customerName}, regarding your Mabrix LPG order.`)}" target="_blank" class="w-8 h-7 rounded-lg bg-[#25D366] text-white hover:bg-[#20ba5a] flex items-center justify-center text-xs" title="WhatsApp">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </a>
+                            </div>
+
+                            <div class="flex items-center gap-1">
+                                <span class="text-[10px] text-slate-400">Status:</span>
+                                <select onchange="updateOrderStatusFromModal('${o.id}', this.value)" class="text-[10.5px] font-bold bg-[#f8fafc] border border-[#cbd7eb] text-[#15387C] rounded-lg px-2 py-0.5">
+                                    <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>Dispatched</option>
+                                    <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                    <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const modal = document.getElementById('metricListModal');
+            const content = document.getElementById('metricListModalContent');
+            if (modal && content) {
+                modal.classList.remove('hidden', 'pointer-events-none');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('translate-y-8');
+                }, 10);
+            }
+        }
+
+        function closeMetricListModal() {
+            const modal = document.getElementById('metricListModal');
+            const content = document.getElementById('metricListModalContent');
+            if (modal && content) {
+                modal.classList.add('opacity-0');
+                content.classList.add('translate-y-8');
+                setTimeout(() => {
+                    modal.classList.add('hidden', 'pointer-events-none');
+                }, 250);
+            }
+        }
+
+        async function updateOrderStatusFromModal(orderId, newStatus) {
+            await updateOrderStatus(orderId, newStatus);
+            if (activeMetricTitle) {
+                openMetricOrdersList(activeMetricScope, activeMetricTitle);
+            }
+        }
+
+        function switchToFilteredOrdersTab() {
+            closeMetricListModal();
+            switchTab('allOrders');
         }
 
         // AUTO-SYNC / STORAGE LISTENER (CROSS-TAB SYNC)
