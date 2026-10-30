@@ -663,7 +663,8 @@
             iban: "PK57ASCM0003860200003622"
         };
 
-        // DYNAMIC RATES (SYNCED LIVE WITH ADMIN PANEL & /api/rates)
+        // DYNAMIC RATES (SYNCED LIVE WITH CLOUD & ADMIN PANEL)
+        const CLOUD_RATES_ENDPOINT = 'https://api.restful-api.dev/objects/ff808181a09d98f701a18c462dec60f9';
         let RATES = {
             domestic: 5000,
             commercial: 10000,
@@ -707,31 +708,41 @@
             } catch(e){}
 
             // 2. Fetch live rates from backend API with timestamp guard
+            let synced = false;
             try {
                 const res = await fetch('/api/rates', { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.rates) {
+                    if (data && data.rates && data.rates.domestic && data.rates.commercial) {
                         const remoteTime = new Date(data.rates.updatedAt || 0).getTime() || 0;
                         const localTime = localData && localData.updatedAt 
                             ? (typeof localData.updatedAt === 'number' ? localData.updatedAt : new Date(localData.updatedAt).getTime() || 0)
                             : 0;
 
                         // GUARD: Never revert local custom rates with remote default rates
-                        if (data.rates.isDefault && localData && localData.isCustom) {
-                            return;
+                        if (!(data.rates.isDefault && localData && localData.isCustom) &&
+                            !(localData && localData.isCustom && localTime > remoteTime)) {
+                            applyRates(data.rates);
+                            localStorage.setItem('mabrix_rates', JSON.stringify(data.rates));
+                            synced = !data.rates.isDefault;
                         }
-
-                        // GUARD: Never revert if local rates are newer than remote
-                        if (localData && localData.isCustom && localTime > remoteTime) {
-                            return;
-                        }
-
-                        applyRates(data.rates);
-                        localStorage.setItem('mabrix_rates', JSON.stringify(data.rates));
                     }
                 }
             } catch(e){}
+
+            // 3. Direct Cloud DB fetch fallback (ensures cross-device permanent sync)
+            if (!synced) {
+                try {
+                    const cloudRes = await fetch(CLOUD_RATES_ENDPOINT, { cache: 'no-store' });
+                    if (cloudRes.ok) {
+                        const json = await cloudRes.json();
+                        if (json && json.data && json.data.domestic && json.data.commercial) {
+                            applyRates(json.data);
+                            localStorage.setItem('mabrix_rates', JSON.stringify(json.data));
+                        }
+                    }
+                } catch(e){}
+            }
         }
 
         // Cross-tab / cross-window live storage listener

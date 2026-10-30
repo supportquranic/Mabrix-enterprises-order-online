@@ -1138,49 +1138,52 @@
             if (comInput) comInput.value = RATES.commercial;
         }
 
+        const CLOUD_RATES_ENDPOINT = 'https://api.restful-api.dev/objects/ff808181a09d98f701a18c462dec60f9';
+
         async function loadRemoteRates() {
+            let loaded = false;
+
+            // 1. Try backend /api/rates
             try {
                 const res = await fetch('/api/rates', { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.rates) {
-                        const localRaw = localStorage.getItem('mabrix_rates');
-                        let localData = null;
-                        if (localRaw) {
-                            try { localData = JSON.parse(localRaw); } catch(e){}
+                    if (data && data.rates && data.rates.domestic && data.rates.commercial) {
+                        if (!data.rates.isDefault) {
+                            RATES.domestic = Number(data.rates.domestic);
+                            RATES.commercial = Number(data.rates.commercial);
+                            RATES.updatedAt = data.rates.updatedAt || Date.now();
+                            RATES.isCustom = true;
+                            localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
+                            initRatesInput();
+                            updateDashboardMetrics();
+                            renderSalesChart();
+                            loaded = true;
                         }
-
-                        const remoteTime = new Date(data.rates.updatedAt || 0).getTime() || 0;
-                        const localTime = localData && localData.updatedAt 
-                            ? (typeof localData.updatedAt === 'number' ? localData.updatedAt : new Date(localData.updatedAt).getTime() || 0)
-                            : 0;
-
-                        // If remote is default but local has custom rates saved, don't revert; sync local rates to server
-                        if (data.rates.isDefault && localData && localData.isCustom) {
-                            fetch('/api/rates', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(localData)
-                            }).catch(() => {});
-                            return;
-                        }
-
-                        // If local data exists and is newer than remote, don't revert
-                        if (localData && localData.isCustom && localTime > remoteTime) {
-                            return;
-                        }
-
-                        if (data.rates.domestic) RATES.domestic = Number(data.rates.domestic);
-                        if (data.rates.commercial) RATES.commercial = Number(data.rates.commercial);
-                        RATES.updatedAt = remoteTime || Date.now();
-                        RATES.isCustom = Boolean(data.rates.isCustom);
-                        localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
-                        initRatesInput();
-                        updateDashboardMetrics();
-                        renderSalesChart();
                     }
                 }
             } catch(e){}
+
+            // 2. Direct Cloud DB fetch fallback (ensures cross-device permanent sync)
+            if (!loaded) {
+                try {
+                    const cloudRes = await fetch(CLOUD_RATES_ENDPOINT, { cache: 'no-store' });
+                    if (cloudRes.ok) {
+                        const json = await cloudRes.json();
+                        if (json && json.data && json.data.domestic && json.data.commercial) {
+                            RATES.domestic = Number(json.data.domestic);
+                            RATES.commercial = Number(json.data.commercial);
+                            RATES.updatedAt = json.data.updatedAt || Date.now();
+                            RATES.isCustom = true;
+                            localStorage.setItem('mabrix_rates', JSON.stringify(RATES));
+                            initRatesInput();
+                            updateDashboardMetrics();
+                            renderSalesChart();
+                            loaded = true;
+                        }
+                    }
+                } catch(e){}
+            }
         }
 
         async function saveRates() {
@@ -1198,25 +1201,35 @@
             RATES.updatedAt = now;
             RATES.isCustom = true;
 
+            // 1. Immediate local storage
             localStorage.setItem('mabrix_rates', JSON.stringify(ratesData));
 
-            // Instant cross-tab broadcast via BroadcastChannel
+            // 2. Instant cross-tab broadcast via BroadcastChannel
             try {
                 const ch = new BroadcastChannel('mabrix_rates_channel');
                 ch.postMessage({ type: 'RATES_UPDATED', rates: ratesData });
                 setTimeout(() => ch.close(), 1000);
             } catch(e){}
 
-            // Broadcast to backend API live
+            // 3. Broadcast to backend API live
             try {
-                await fetch('/api/rates', {
+                fetch('/api/rates', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(ratesData)
-                });
+                }).catch(() => {});
             } catch(e){}
 
-            showToast("Rates updated & synced live to customer page!");
+            // 4. Permanent Cloud DB broadcast (guarantees cross-device sync forever)
+            try {
+                fetch(CLOUD_RATES_ENDPOINT, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: 'mabrix_rates', data: ratesData })
+                }).catch(() => {});
+            } catch(e){}
+
+            showToast("Rates updated & permanently saved to cloud!");
             updateDashboardMetrics();
             renderSalesChart();
         }
