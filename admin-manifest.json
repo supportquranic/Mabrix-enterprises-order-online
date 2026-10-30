@@ -1,0 +1,23 @@
+{
+  "name": "Mabrix Enterprises - Admin Portal",
+  "short_name": "Mabrix Admin",
+  "description": "Admin Operations and Order Management Dashboard for Mabrix Enterprises.",
+  "start_url": "./admin.html",
+  "display": "standalone",
+  "background_color": "#F6AD3A",
+  "theme_color": "#15387C",
+  "icons": [
+    {
+      "src": "admin-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "admin-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
