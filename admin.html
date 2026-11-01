@@ -706,7 +706,7 @@
                             type="text" 
                             id="manualCustName" 
                             required 
-                            placeholder="e.g. Imran Khan / Bahria Resident" 
+                            placeholder="e.g. Customer Name / Resident" 
                             class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none focus:border-[#15387C]"
                         >
                     </div>
@@ -720,7 +720,7 @@
                             type="tel" 
                             id="manualCustPhone" 
                             required 
-                            placeholder="e.g. 03001234567" 
+                            placeholder="e.g. 03XX XXXXXXX" 
                             class="w-full bg-[#f8fafc] border border-[#cbd7eb] rounded-xl px-3 py-2 text-xs font-semibold text-[#15387C] focus:outline-none focus:border-[#15387C]"
                         >
                     </div>
@@ -1258,15 +1258,22 @@
                 try {
                     const localData = localStorage.getItem('mabrix_orders');
                     if (localData) {
-                        orders = JSON.parse(localData);
+                        const parsed = JSON.parse(localData);
+                        // Filter out legacy demo orders (e.g. MBX-8821...)
+                        orders = Array.isArray(parsed) ? parsed.filter(o => o && o.id && !o.id.startsWith('MBX-8821')) : [];
                     } else {
-                        // Populate with a few realistic starter orders if empty
-                        initDefaultOrders();
+                        orders = [];
                     }
                 } catch(e) {
-                    initDefaultOrders();
+                    orders = [];
                 }
+            } else {
+                // Also purge any legacy demo orders from API response
+                orders = orders.filter(o => o && o.id && !o.id.startsWith('MBX-8821'));
             }
+
+            // Keep clean orders in localStorage
+            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
 
             // Check if new orders arrived to trigger alert
             if (knownOrderIds.size > 0) {
@@ -1282,186 +1289,15 @@
         }
 
         function initDefaultOrders() {
-            const now = new Date();
-            orders = [
-                {
-                    id: "MBX-882140",
-                    customerName: "Imran Khan",
-                    phone: "03001234567",
-                    area: "Bahria Town",
-                    address: "House 42, Sector C, Bahria Town Lahore",
-                    cylinderType: "Domestic Cylinder (10 Kg)",
-                    cylinderCode: "domestic",
-                    quantity: 1,
-                    pricePerUnit: RATES.domestic,
-                    totalPrice: RATES.domestic,
-                    deliveryTime: "As Soon As Possible",
-                    deliverySchedule: "today",
-                    paymentMethod: "Cash on Delivery (COD)",
-                    status: "pending",
-                    createdAt: new Date(now.getTime() - 20 * 60000).toISOString()
-                },
-                {
-                    id: "MBX-882139",
-                    customerName: "Tariq Mahmood (Cafe Royal)",
-                    phone: "03339876543",
-                    area: "Lake City",
-                    address: "Shop 12, Main Commercial Blvd, Lake City",
-                    cylinderType: "Commercial Cylinder (45 Kg)",
-                    cylinderCode: "commercial",
-                    quantity: 2,
-                    pricePerUnit: RATES.commercial,
-                    totalPrice: RATES.commercial * 2,
-                    deliveryTime: "Within 24 Hours",
-                    deliverySchedule: "tomorrow",
-                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
-                    status: "pending",
-                    createdAt: new Date(now.getTime() - 55 * 60000).toISOString()
-                },
-                {
-                    id: "MBX-882138",
-                    customerName: "Dr. Naveed Ashraf",
-                    phone: "03014499011",
-                    area: "Valencia Town",
-                    address: "Plot 18, Block H, Valencia Town",
-                    cylinderType: "Commercial Cylinder (45 Kg)",
-                    cylinderCode: "commercial",
-                    quantity: 1,
-                    pricePerUnit: RATES.commercial,
-                    totalPrice: RATES.commercial,
-                    deliveryTime: "As Soon As Possible",
-                    deliverySchedule: "today",
-                    paymentMethod: "Cash on Delivery (COD)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 110 * 60000).toISOString()
-                },
-                {
-                    id: "MBX-882137",
-                    customerName: "Zainab Fatima",
-                    phone: "03239988771",
-                    area: "Lake City",
-                    address: "House 77, Golf View, Lake City",
-                    cylinderType: "Domestic Cylinder (10 Kg)",
-                    cylinderCode: "domestic",
-                    quantity: 1,
-                    pricePerUnit: RATES.domestic,
-                    totalPrice: RATES.domestic,
-                    deliveryTime: "As Soon As Possible",
-                    deliverySchedule: "today",
-                    paymentMethod: "Cash on Delivery (COD)",
-                    status: "pending",
-                    createdAt: new Date(now.getTime() - 160 * 60000).toISOString()
-                },
-                {
-                    id: "MBX-882136",
-                    customerName: "Ayesha Bilal",
-                    phone: "03215554321",
-                    area: "Wapda Town",
-                    address: "House 18-B, Block E2, Wapda Town",
-                    cylinderType: "Domestic Cylinder (10 Kg)",
-                    cylinderCode: "domestic",
-                    quantity: 1,
-                    pricePerUnit: RATES.domestic,
-                    totalPrice: RATES.domestic,
-                    deliveryTime: "As Soon As Possible",
-                    deliverySchedule: "today",
-                    paymentMethod: "Cash on Delivery (COD)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 280 * 60000).toISOString()
-                },
-                {
-                    id: "MBX-882135",
-                    customerName: "Malik Usman (Al-Madina Commercial Kitchen)",
-                    phone: "03028887766",
-                    area: "Khyaban-e-Amin",
-                    address: "Block N, Commercial Sector, Khyaban-e-Amin",
-                    cylinderType: "Commercial Cylinder (45 Kg)",
-                    cylinderCode: "commercial",
-                    quantity: 3,
-                    pricePerUnit: RATES.commercial,
-                    totalPrice: RATES.commercial * 3,
-                    deliveryTime: "Within 24 Hours",
-                    deliverySchedule: "yesterday",
-                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 26 * 3600000).toISOString()
-                },
-                {
-                    id: "MBX-882134",
-                    customerName: "Kashif Riaz",
-                    phone: "03451122334",
-                    area: "Bahria Town",
-                    address: "Villa 104, Jasmine Block, Bahria Town",
-                    cylinderType: "Domestic Cylinder (10 Kg)",
-                    cylinderCode: "domestic",
-                    quantity: 2,
-                    pricePerUnit: RATES.domestic,
-                    totalPrice: RATES.domestic * 2,
-                    deliveryTime: "As Soon As Possible",
-                    deliverySchedule: "yesterday",
-                    paymentMethod: "Cash on Delivery (COD)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 32 * 3600000).toISOString()
-                },
-                {
-                    id: "MBX-882133",
-                    customerName: "Haji Abdul Rehman",
-                    phone: "03006655443",
-                    area: "Wapda Town",
-                    address: "Shop 5, Main Grid Road, Wapda Town",
-                    cylinderType: "Commercial Cylinder (45 Kg)",
-                    cylinderCode: "commercial",
-                    quantity: 2,
-                    pricePerUnit: RATES.commercial,
-                    totalPrice: RATES.commercial * 2,
-                    deliveryTime: "Within 24 Hours",
-                    deliverySchedule: "2 days ago",
-                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 52 * 3600000).toISOString()
-                },
-                {
-                    id: "MBX-882132",
-                    customerName: "Zubair Ahmed",
-                    phone: "03314455667",
-                    area: "Valencia Town",
-                    address: "House 12-A, Block K, Valencia Town",
-                    cylinderType: "Domestic Cylinder (10 Kg)",
-                    cylinderCode: "domestic",
-                    quantity: 1,
-                    pricePerUnit: RATES.domestic,
-                    totalPrice: RATES.domestic,
-                    deliveryTime: "As Soon As Possible",
-                    deliverySchedule: "3 days ago",
-                    paymentMethod: "Cash on Delivery (COD)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 76 * 3600000).toISOString()
-                },
-                {
-                    id: "MBX-882131",
-                    customerName: "Ali Raza (Shanwari Restaurant)",
-                    phone: "03223344556",
-                    area: "Bahria Town",
-                    address: "Commercial Area, Sector B, Bahria Town",
-                    cylinderType: "Commercial Cylinder (45 Kg)",
-                    cylinderCode: "commercial",
-                    quantity: 2,
-                    pricePerUnit: RATES.commercial,
-                    totalPrice: RATES.commercial * 2,
-                    deliveryTime: "Within 24 Hours",
-                    deliverySchedule: "4 days ago",
-                    paymentMethod: "Bank Transfer (Askari Bank Ltd)",
-                    status: "delivered",
-                    createdAt: new Date(now.getTime() - 100 * 3600000).toISOString()
-                }
-            ];
-            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
+            orders = [];
+            localStorage.setItem('mabrix_orders', JSON.stringify([]));
         }
 
         function reloadDemoData() {
-            initDefaultOrders();
+            orders = [];
+            localStorage.setItem('mabrix_orders', JSON.stringify([]));
             renderAll();
-            showToast("Reloaded 10 Demo Orders Successfully!");
+            showToast("Orders list refreshed!");
         }
 
         // ==========================================
@@ -2364,52 +2200,6 @@
             if (navBadge) navBadge.textContent = pendingCount;
             const totalBadge = document.getElementById('pendingTotalCountBadge');
             if (totalBadge) totalBadge.textContent = `${pendingCount} Pending`;
-        }
-
-        // SIMULATE / TEST ORDER CREATOR
-        async function createMockOrder() {
-            const names = ["Zubair Ahmed", "Kashif Riaz", "Malik Usman", "Ali Raza", "Dr. Naveed"];
-            const areas = ["Bahria Town", "Lake City", "Khyaban-e-Amin", "Wapda Town", "Valencia Town"];
-            const isCom = Math.random() > 0.5;
-            const code = isCom ? "commercial" : "domestic";
-            const qty = isCom ? 2 : 1;
-            const name = names[Math.floor(Math.random() * names.length)];
-            const area = areas[Math.floor(Math.random() * areas.length)];
-            const schedule = Math.random() > 0.5 ? "today" : "tomorrow";
-
-            const mockOrder = {
-                id: "MBX-" + Math.floor(100000 + Math.random() * 900000),
-                customerName: name,
-                phone: "0300" + Math.floor(1000000 + Math.random() * 9000000),
-                area: area,
-                address: `Plot #${Math.floor(Math.random() * 200)}, Street 5, ${area}`,
-                cylinderType: isCom ? "Commercial Cylinder (45 Kg)" : "Domestic Cylinder (10 Kg)",
-                cylinderCode: code,
-                quantity: qty,
-                pricePerUnit: isCom ? RATES.commercial : RATES.domestic,
-                totalPrice: qty * (isCom ? RATES.commercial : RATES.domestic),
-                deliveryTime: schedule === 'today' ? "As Soon As Possible" : "Within 24 Hours",
-                deliverySchedule: schedule,
-                paymentMethod: "Cash on Delivery (COD)",
-                status: "pending",
-                createdAt: new Date().toISOString()
-            };
-
-            orders.unshift(mockOrder);
-            localStorage.setItem('mabrix_orders', JSON.stringify(orders));
-
-            // Sync with backend API if running
-            try {
-                await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(mockOrder)
-                });
-            } catch(e){}
-
-            triggerNewOrderAlert(mockOrder);
-            renderAll();
-            showToast("Test order created & notification triggered!");
         }
 
         function clearAllOrders() {
