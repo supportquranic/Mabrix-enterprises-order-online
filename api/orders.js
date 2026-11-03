@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/orders
-// Multi-Tier Persistent Store: Cloud Key-Value DB + Local /tmp Scratchpad + In-Memory Cache
+// Multi-Tier Persistent Store: MongoDB Atlas (Primary) + Cloud Key-Value + /tmp Scratchpad + In-Memory Cache
 
 import fs from 'fs';
 import path from 'path';
@@ -7,7 +7,31 @@ import os from 'os';
 
 const CLOUD_ORDERS_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a12ebed11e0c';
 const TMP_ORDERS_FILE = path.join(os.tmpdir(), 'mabrix_orders.json');
+const MONGODB_URI = process.env.MONGODB_URI || '';
+
 let memoryOrders = null;
+let cachedClient = null;
+let cachedDb = null;
+
+async function getMongoDb() {
+    if (!MONGODB_URI) return null;
+    if (cachedDb) return cachedDb;
+
+    try {
+        const { MongoClient } = await import('mongodb');
+        if (!cachedClient) {
+            cachedClient = new MongoClient(MONGODB_URI, {
+                serverSelectionTimeoutMS: 3000,
+                connectTimeoutMS: 4000
+            });
+            await cachedClient.connect();
+        }
+        cachedDb = cachedClient.db('mabrix');
+        return cachedDb;
+    } catch (err) {
+        return null;
+    }
+}
 
 function mergeOrdersLists(...lists) {
     const map = new Map();
@@ -18,7 +42,6 @@ function mergeOrdersLists(...lists) {
                     if (!map.has(item.id)) {
                         map.set(item.id, item);
                     } else {
-                        // Merge fields, prioritize updated status or newer fields
                         const existing = map.get(item.id);
                         map.set(item.id, { ...existing, ...item });
                     }
@@ -34,7 +57,7 @@ function mergeOrdersLists(...lists) {
 async function fetchFromCloud() {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
         const res = await fetch(CLOUD_ORDERS_URL, { signal: controller.signal, cache: 'no-store' });
         clearTimeout(timeoutId);
         if (res.ok) {
@@ -65,24 +88,34 @@ function writeToTmp(orders) {
 }
 
 async function pushToCloudWithRetry(orders) {
-    for (let i = 0; i < 2; i++) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 7000);
-            const res = await fetch(CLOUD_ORDERS_URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: 'mabrix_orders', data: { orders: orders } }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            if (res.ok) return true;
-        } catch (e) {}
-    }
-    return false;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        await fetch(CLOUD_ORDERS_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'mabrix_orders', data: { orders: orders } }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+    } catch (e) {}
 }
 
 async function getAllOrdersMerged() {
+    // 1. Try MongoDB Atlas First
+    const db = await getMongoDb();
+    if (db) {
+        try {
+            const docs = await db.collection('orders').find({}).project({ _id: 0 }).sort({ createdAt: -1 }).toArray();
+            if (Array.isArray(docs) && docs.length > 0) {
+                memoryOrders = docs;
+                writeToTmp(docs);
+                return docs;
+            }
+        } catch (e) {}
+    }
+
+    // 2. Multi-tier Fallback
     const cloudOrders = await fetchFromCloud();
     const tmpOrders = readFromTmp();
     const memOrders = Array.isArray(memoryOrders) ? memoryOrders : [];
@@ -90,15 +123,42 @@ async function getAllOrdersMerged() {
     const all = mergeOrdersLists(cloudOrders || [], tmpOrders, memOrders);
     memoryOrders = all;
     writeToTmp(all);
+
+    // If MongoDB is connected but was empty, seed MongoDB with existing orders
+    if (db && all.length > 0) {
+        try {
+            const ops = all.map(o => ({
+                updateOne: {
+                    filter: { id: o.id },
+                    update: { $set: o },
+                    upsert: true
+                }
+            }));
+            await db.collection('orders').bulkWrite(ops);
+        } catch(e) {}
+    }
+
     return all;
 }
 
 async function addAndSaveOrder(newOrder) {
+    // 1. Save to MongoDB Atlas atomically
+    const db = await getMongoDb();
+    if (db) {
+        try {
+            await db.collection('orders').updateOne(
+                { id: newOrder.id },
+                { $set: newOrder },
+                { upsert: true }
+            );
+        } catch(e) {}
+    }
+
+    // 2. Always maintain local cache & cloud backup
     const cloudOrders = await fetchFromCloud();
     const tmpOrders = readFromTmp();
     const memOrders = Array.isArray(memoryOrders) ? memoryOrders : [];
 
-    // Union merge ensures NO existing order is ever erased!
     const all = mergeOrdersLists(cloudOrders || [], tmpOrders, memOrders, [newOrder]);
     memoryOrders = all;
     writeToTmp(all);
@@ -107,22 +167,41 @@ async function addAndSaveOrder(newOrder) {
     return all;
 }
 
-async function updateOrderStatusInCloud(id, status) {
+async function updateOrderStatusInStore(id, status) {
+    const updatedAt = new Date().toISOString();
+
+    // 1. Update MongoDB Atlas
+    const db = await getMongoDb();
+    if (db) {
+        try {
+            await db.collection('orders').updateOne(
+                { id },
+                { $set: { status, updatedAt } }
+            );
+        } catch(e) {}
+    }
+
+    // 2. Update local cache & cloud backup
     const currentOrders = await getAllOrdersMerged();
     const orderIndex = currentOrders.findIndex(o => o.id === id);
-    if (orderIndex === -1) return null;
-
-    currentOrders[orderIndex].status = status;
-    currentOrders[orderIndex].updatedAt = new Date().toISOString();
-
-    memoryOrders = currentOrders;
-    writeToTmp(currentOrders);
-    await pushToCloudWithRetry(currentOrders);
-
-    return currentOrders[orderIndex];
+    if (orderIndex !== -1) {
+        currentOrders[orderIndex].status = status;
+        currentOrders[orderIndex].updatedAt = updatedAt;
+        memoryOrders = currentOrders;
+        writeToTmp(currentOrders);
+        await pushToCloudWithRetry(currentOrders);
+        return currentOrders[orderIndex];
+    }
+    return null;
 }
 
 async function clearOrdersStore() {
+    const db = await getMongoDb();
+    if (db) {
+        try {
+            await db.collection('orders').deleteMany({});
+        } catch(e) {}
+    }
     memoryOrders = [];
     writeToTmp([]);
     await pushToCloudWithRetry([]);
@@ -149,6 +228,7 @@ export default async function handler(req, res) {
         return res.status(200).json({
             success: true,
             count: orders.length,
+            database: cachedDb ? 'mongodb' : 'fallback-store',
             orders: orders
         });
     }
@@ -190,7 +270,7 @@ export default async function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             const { id, status } = body;
-            const updated = await updateOrderStatusInCloud(id, status);
+            const updated = await updateOrderStatusInStore(id, status);
 
             if (!updated) {
                 return res.status(404).json({ success: false, message: 'Order not found' });
