@@ -211,6 +211,21 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(404)
         self.end_headers()
 
+    def do_DELETE(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == '/api/orders':
+            write_orders([])
+            response_data = json.dumps({'success': True, 'message': 'Orders cleared'}).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response_data)))
+            self.end_headers()
+            self.wfile.write(response_data)
+            return
+
+        self.send_response(404)
+        self.end_headers()
+
 def run(port=PORT):
     os.chdir(BASE_DIR)
     socketserver.TCPServer.allow_reuse_address = True

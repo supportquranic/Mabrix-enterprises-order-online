@@ -9,57 +9,123 @@ const CLOUD_ORDERS_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701
 const TMP_ORDERS_FILE = path.join(os.tmpdir(), 'mabrix_orders.json');
 let memoryOrders = null;
 
-async function getOrdersFromCloud() {
-    // 1. Try cloud store first
+function mergeOrdersLists(...lists) {
+    const map = new Map();
+    for (const list of lists) {
+        if (Array.isArray(list)) {
+            for (const item of list) {
+                if (item && item.id) {
+                    if (!map.has(item.id)) {
+                        map.set(item.id, item);
+                    } else {
+                        // Merge fields, prioritize updated status or newer fields
+                        const existing = map.get(item.id);
+                        map.set(item.id, { ...existing, ...item });
+                    }
+                }
+            }
+        }
+    }
+    const merged = Array.from(map.values());
+    merged.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    return merged;
+}
+
+async function fetchFromCloud() {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2800);
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
         const res = await fetch(CLOUD_ORDERS_URL, { signal: controller.signal, cache: 'no-store' });
         clearTimeout(timeoutId);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data && Array.isArray(json.data.orders)) {
-                memoryOrders = json.data.orders;
-                try { fs.writeFileSync(TMP_ORDERS_FILE, JSON.stringify(memoryOrders), 'utf-8'); } catch(e){}
-                return memoryOrders;
+                return json.data.orders;
             }
         }
-    } catch(e){}
+    } catch (e) {}
+    return null;
+}
 
-    // 2. Fallback to /tmp scratchpad
+function readFromTmp() {
     try {
         if (fs.existsSync(TMP_ORDERS_FILE)) {
             const raw = fs.readFileSync(TMP_ORDERS_FILE, 'utf-8');
-            memoryOrders = JSON.parse(raw);
-            if (!Array.isArray(memoryOrders)) memoryOrders = [];
-            return memoryOrders;
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
         }
-    } catch(e){}
-
-    // 3. Fallback to memory
-    if (Array.isArray(memoryOrders)) return memoryOrders;
-
+    } catch (e) {}
     return [];
 }
 
-async function saveOrdersToCloud(orders) {
-    memoryOrders = orders;
+function writeToTmp(orders) {
     try {
         fs.writeFileSync(TMP_ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf-8');
-    } catch(e){}
+    } catch (e) {}
+}
 
-    // Sync to cloud store
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
-        await fetch(CLOUD_ORDERS_URL, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: 'mabrix_orders', data: { orders: orders } }),
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-    } catch(e){}
+async function pushToCloudWithRetry(orders) {
+    for (let i = 0; i < 2; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 7000);
+            const res = await fetch(CLOUD_ORDERS_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'mabrix_orders', data: { orders: orders } }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            if (res.ok) return true;
+        } catch (e) {}
+    }
+    return false;
+}
+
+async function getAllOrdersMerged() {
+    const cloudOrders = await fetchFromCloud();
+    const tmpOrders = readFromTmp();
+    const memOrders = Array.isArray(memoryOrders) ? memoryOrders : [];
+
+    const all = mergeOrdersLists(cloudOrders || [], tmpOrders, memOrders);
+    memoryOrders = all;
+    writeToTmp(all);
+    return all;
+}
+
+async function addAndSaveOrder(newOrder) {
+    const cloudOrders = await fetchFromCloud();
+    const tmpOrders = readFromTmp();
+    const memOrders = Array.isArray(memoryOrders) ? memoryOrders : [];
+
+    // Union merge ensures NO existing order is ever erased!
+    const all = mergeOrdersLists(cloudOrders || [], tmpOrders, memOrders, [newOrder]);
+    memoryOrders = all;
+    writeToTmp(all);
+
+    await pushToCloudWithRetry(all);
+    return all;
+}
+
+async function updateOrderStatusInCloud(id, status) {
+    const currentOrders = await getAllOrdersMerged();
+    const orderIndex = currentOrders.findIndex(o => o.id === id);
+    if (orderIndex === -1) return null;
+
+    currentOrders[orderIndex].status = status;
+    currentOrders[orderIndex].updatedAt = new Date().toISOString();
+
+    memoryOrders = currentOrders;
+    writeToTmp(currentOrders);
+    await pushToCloudWithRetry(currentOrders);
+
+    return currentOrders[orderIndex];
+}
+
+async function clearOrdersStore() {
+    memoryOrders = [];
+    writeToTmp([]);
+    await pushToCloudWithRetry([]);
 }
 
 export default async function handler(req, res) {
@@ -79,11 +145,11 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-        const currentOrders = await getOrdersFromCloud();
+        const orders = await getAllOrdersMerged();
         return res.status(200).json({
             success: true,
-            count: currentOrders.length,
-            orders: currentOrders
+            count: orders.length,
+            orders: orders
         });
     }
 
@@ -97,23 +163,19 @@ export default async function handler(req, res) {
                 area: body.area || 'Bahria Town',
                 address: body.address || '',
                 cylinderType: body.cylinderType || 'Domestic Cylinder (10 Kg)',
-                cylinderCode: body.cylinderCode || 'domestic', // domestic or commercial
+                cylinderCode: body.cylinderCode || 'domestic',
                 quantity: Number(body.quantity) || 1,
                 pricePerUnit: Number(body.pricePerUnit) || (body.cylinderCode === 'commercial' ? 10000 : 5000),
                 totalPrice: Number(body.totalPrice) || ((Number(body.quantity) || 1) * (body.cylinderCode === 'commercial' ? 10000 : 5000)),
-                deliveryTime: body.deliveryTime || 'As Soon As Possible', // 'As Soon As Possible' or 'Within 24 Hours'
-                deliverySchedule: body.deliverySchedule || 'today', // 'today' or 'tomorrow'
+                deliveryTime: body.deliveryTime || 'As Soon As Possible',
+                deliverySchedule: body.deliverySchedule || 'today',
                 paymentMethod: body.paymentMethod || 'Cash on Delivery (COD)',
-                status: body.status || 'pending', // 'pending', 'dispatched', 'delivered', 'cancelled'
+                status: body.status || 'pending',
                 createdAt: body.createdAt || new Date().toISOString(),
                 notes: body.notes || ''
             };
 
-            const currentOrders = await getOrdersFromCloud();
-            if (!currentOrders.some(o => o.id === newOrder.id)) {
-                currentOrders.unshift(newOrder);
-            }
-            await saveOrdersToCloud(currentOrders);
+            await addAndSaveOrder(newOrder);
 
             return res.status(201).json({
                 success: true,
@@ -128,21 +190,25 @@ export default async function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             const { id, status } = body;
-            const currentOrders = await getOrdersFromCloud();
-            const orderIndex = currentOrders.findIndex(o => o.id === id);
+            const updated = await updateOrderStatusInCloud(id, status);
 
-            if (orderIndex === -1) {
+            if (!updated) {
                 return res.status(404).json({ success: false, message: 'Order not found' });
             }
 
-            currentOrders[orderIndex].status = status;
-            currentOrders[orderIndex].updatedAt = new Date().toISOString();
-            await saveOrdersToCloud(currentOrders);
-
             return res.status(200).json({
                 success: true,
-                order: currentOrders[orderIndex]
+                order: updated
             });
+        } catch (err) {
+            return res.status(400).json({ success: false, error: err.message });
+        }
+    }
+
+    if (req.method === 'DELETE') {
+        try {
+            await clearOrdersStore();
+            return res.status(200).json({ success: true, message: 'Orders cleared' });
         } catch (err) {
             return res.status(400).json({ success: false, error: err.message });
         }

@@ -1253,69 +1253,71 @@
             renderSalesChart();
         }
 
-        // LOAD ORDERS (MULTI-TIER SYNC: API + CLOUD DB + LOCALSTORAGE)
+        // LOAD ORDERS (MULTI-TIER PARALLEL SYNC & DEDUPLICATION: API + CLOUD DB + LOCALSTORAGE)
         async function loadOrders() {
-            let fetchedList = null;
+            let apiOrders = [];
+            let cloudOrders = [];
 
-            // 1. Try backend /api/orders
+            // 1. Fetch both API and Cloud DB in parallel with fast timeouts
             try {
-                const res = await fetch('/api/orders', { cache: 'no-store' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && Array.isArray(data.orders)) {
-                        fetchedList = data.orders;
-                    }
+                const [apiRes, cloudRes] = await Promise.allSettled([
+                    fetch('/api/orders', { cache: 'no-store' }),
+                    fetch(CLOUD_ORDERS_ENDPOINT, { cache: 'no-store' })
+                ]);
+
+                if (apiRes.status === 'fulfilled' && apiRes.value && apiRes.value.ok) {
+                    try {
+                        const data = await apiRes.value.json();
+                        if (data && Array.isArray(data.orders)) apiOrders = data.orders;
+                    } catch(e){}
+                }
+
+                if (cloudRes.status === 'fulfilled' && cloudRes.value && cloudRes.value.ok) {
+                    try {
+                        const cJson = await cloudRes.value.json();
+                        if (cJson && cJson.data && Array.isArray(cJson.data.orders)) cloudOrders = cJson.data.orders;
+                    } catch(e){}
                 }
             } catch (err) {}
 
-            // 2. Direct Cloud DB fetch fallback (ensures cross-device instant sync)
-            if (!fetchedList || fetchedList.length === 0) {
-                try {
-                    const cRes = await fetch(CLOUD_ORDERS_ENDPOINT, { cache: 'no-store' });
-                    if (cRes.ok) {
-                        const cJson = await cRes.json();
-                        if (cJson && cJson.data && Array.isArray(cJson.data.orders)) {
-                            fetchedList = cJson.data.orders;
-                        }
-                    }
-                } catch(e){}
-            }
+            // 2. Read local cached orders
+            let localOrders = [];
+            try {
+                const localRaw = localStorage.getItem('mabrix_orders');
+                if (localRaw) localOrders = JSON.parse(localRaw);
+            } catch(e){}
+            if (!Array.isArray(localOrders)) localOrders = [];
 
-            if (fetchedList) {
-                // Filter out any legacy demo orders (e.g. MBX-8821...)
-                const cleanList = fetchedList.filter(o => o && o.id && !o.id.startsWith('MBX-8821'));
-
-                // Merge with any local orders not yet present in fetched list
-                let localOrders = [];
-                try {
-                    const localRaw = localStorage.getItem('mabrix_orders');
-                    if (localRaw) localOrders = JSON.parse(localRaw);
-                } catch(e){}
-                if (!Array.isArray(localOrders)) localOrders = [];
-
-                localOrders.forEach(lo => {
-                    if (lo && lo.id && !lo.id.startsWith('MBX-8821') && !cleanList.some(ro => ro.id === lo.id)) {
-                        cleanList.push(lo);
-                    }
-                });
-
-                orders = cleanList;
-            } else {
-                // Fallback to local storage
-                try {
-                    const localData = localStorage.getItem('mabrix_orders');
-                    if (localData) {
-                        const parsed = JSON.parse(localData);
-                        orders = Array.isArray(parsed) ? parsed.filter(o => o && o.id && !o.id.startsWith('MBX-8821')) : [];
+            // 3. Atomic union merge: API + Cloud + LocalStorage + current in-memory orders
+            const orderMap = new Map();
+            [...apiOrders, ...cloudOrders, ...localOrders, ...orders].forEach(o => {
+                if (o && o.id && !String(o.id).startsWith('MBX-8821')) {
+                    if (!orderMap.has(o.id)) {
+                        orderMap.set(o.id, o);
                     } else {
-                        orders = [];
+                        const existing = orderMap.get(o.id);
+                        orderMap.set(o.id, { ...existing, ...o });
                     }
-                } catch(e) {
-                    orders = [];
                 }
+            });
+
+            const mergedList = Array.from(orderMap.values());
+            mergedList.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+            // 4. Auto-healing: If local/memory discovered orders missing from cloud, heal the cloud store
+            if (mergedList.length > cloudOrders.length && mergedList.length > 0) {
+                try {
+                    fetch(CLOUD_ORDERS_ENDPOINT, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: 'mabrix_orders', data: { orders: mergedList } })
+                    }).catch(() => {});
+                } catch(e){}
             }
 
-            // Keep clean orders in localStorage
+            orders = mergedList;
+
+            // Keep clean merged orders in localStorage
             localStorage.setItem('mabrix_orders', JSON.stringify(orders));
 
             // Check if new orders arrived to trigger alert & chime
@@ -1337,9 +1339,7 @@
         }
 
         function reloadDemoData() {
-            orders = [];
-            localStorage.setItem('mabrix_orders', JSON.stringify([]));
-            renderAll();
+            loadOrders();
             showToast("Orders list refreshed!");
         }
 
@@ -1470,25 +1470,31 @@
                 fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newOrder)
+                    body: JSON.stringify(newOrder),
+                    keepalive: true
                 }).catch(() => {});
 
-                // Direct Cloud DB backup
+                // Direct Cloud DB atomic union backup
                 (async () => {
                     try {
                         const cRes = await fetch(CLOUD_ORDERS_ENDPOINT, { cache: 'no-store' });
+                        let cList = [];
                         if (cRes.ok) {
                             const cJson = await cRes.json();
-                            const cList = (cJson && cJson.data && Array.isArray(cJson.data.orders)) ? cJson.data.orders : [];
-                            if (!cList.some(o => o.id === newOrder.id)) {
-                                cList.unshift(newOrder);
-                                await fetch(CLOUD_ORDERS_ENDPOINT, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ name: 'mabrix_orders', data: { orders: cList } })
-                                });
-                            }
+                            if (cJson && cJson.data && Array.isArray(cJson.data.orders)) cList = cJson.data.orders;
                         }
+                        const orderMap = new Map();
+                        [...cList, ...orders, newOrder].forEach(o => {
+                            if (o && o.id && !String(o.id).startsWith('MBX-8821')) orderMap.set(o.id, o);
+                        });
+                        const mergedList = Array.from(orderMap.values()).sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+
+                        await fetch(CLOUD_ORDERS_ENDPOINT, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: 'mabrix_orders', data: { orders: mergedList } }),
+                            keepalive: true
+                        });
                     } catch(e){}
                 })();
             } catch(err){}
@@ -1853,11 +1859,11 @@
             });
         }
 
-        // BACKGROUND POLLING (EVERY 1.5 SECONDS FOR FAST SYNC)
+        // BACKGROUND POLLING (EVERY 8 SECONDS FOR BALANCED REAL-TIME SYNC WITHOUT RATE LIMITING)
         function setupPolling() {
             setInterval(() => {
                 loadOrders();
-            }, 1500);
+            }, 8000);
         }
 
         // SOUND & VISUAL ALERT TRIGGER
@@ -2180,27 +2186,36 @@
                 fetch('/api/orders', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: orderId, status: newStatus })
+                    body: JSON.stringify({ id: orderId, status: newStatus }),
+                    keepalive: true
                 }).catch(() => {});
 
-                // Direct Cloud DB sync
+                // Direct Cloud DB atomic sync
                 (async () => {
                     try {
                         const cRes = await fetch(CLOUD_ORDERS_ENDPOINT, { cache: 'no-store' });
+                        let cList = [];
                         if (cRes.ok) {
                             const cJson = await cRes.json();
-                            const cList = (cJson && cJson.data && Array.isArray(cJson.data.orders)) ? cJson.data.orders : [];
-                            const target = cList.find(o => o.id === orderId);
-                            if (target) {
-                                target.status = newStatus;
-                                target.updatedAt = order.updatedAt;
-                                await fetch(CLOUD_ORDERS_ENDPOINT, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ name: 'mabrix_orders', data: { orders: cList } })
-                                });
-                            }
+                            if (cJson && cJson.data && Array.isArray(cJson.data.orders)) cList = cJson.data.orders;
                         }
+                        const orderMap = new Map();
+                        [...cList, ...orders].forEach(o => {
+                            if (o && o.id && !String(o.id).startsWith('MBX-8821')) orderMap.set(o.id, o);
+                        });
+                        const target = orderMap.get(orderId);
+                        if (target) {
+                            target.status = newStatus;
+                            target.updatedAt = order.updatedAt;
+                        }
+                        const mergedList = Array.from(orderMap.values()).sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+
+                        await fetch(CLOUD_ORDERS_ENDPOINT, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: 'mabrix_orders', data: { orders: mergedList } }),
+                            keepalive: true
+                        });
                     } catch(e){}
                 })();
             } catch(e){}
@@ -2294,6 +2309,7 @@
                 showToast("All orders cleared.");
 
                 try {
+                    fetch('/api/orders', { method: 'DELETE' }).catch(() => {});
                     fetch(CLOUD_ORDERS_ENDPOINT, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },

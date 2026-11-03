@@ -905,7 +905,7 @@
         }
 
         // Submit complete order to WhatsApp
-        function submitOrderToWhatsApp() {
+        async function submitOrderToWhatsApp() {
             const isDomestic = (state.selectedType === 'domestic');
             const itemName = isDomestic ? "Domestic Cylinder (10 Kg)" : "Commercial Cylinder (45 Kg)";
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
@@ -1004,38 +1004,59 @@
                 } catch(e){}
 
                 // Send to backend API with keepalive
-                fetch('/api/orders', {
+                const apiPromise = fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(newOrderRecord),
                     keepalive: true
                 }).catch(() => {});
 
-                // Direct Cloud DB sync fallback (ensures cross-device instant notification)
-                (async () => {
+                // Direct Cloud DB atomic union sync (ensures cross-device instant notification without overwriting)
+                const cloudPromise = (async () => {
                     try {
-                        const cRes = await fetch(CLOUD_ORDERS_ENDPOINT, { cache: 'no-store' });
+                        const controller = new AbortController();
+                        const to = setTimeout(() => controller.abort(), 4000);
+                        const cRes = await fetch(CLOUD_ORDERS_ENDPOINT, { signal: controller.signal, cache: 'no-store' });
+                        clearTimeout(to);
+                        let cList = [];
                         if (cRes.ok) {
                             const cJson = await cRes.json();
-                            const cList = (cJson && cJson.data && Array.isArray(cJson.data.orders)) ? cJson.data.orders : [];
-                            if (!cList.some(o => o.id === newOrderRecord.id)) {
-                                cList.unshift(newOrderRecord);
-                                await fetch(CLOUD_ORDERS_ENDPOINT, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ name: 'mabrix_orders', data: { orders: cList } }),
-                                    keepalive: true
-                                });
+                            if (cJson && cJson.data && Array.isArray(cJson.data.orders)) {
+                                cList = cJson.data.orders;
                             }
                         }
+                        let localList = [];
+                        try {
+                            localList = JSON.parse(localStorage.getItem('mabrix_orders') || '[]');
+                        } catch(e){}
+
+                        const orderMap = new Map();
+                        [...cList, ...localList, newOrderRecord].forEach(o => {
+                            if (o && o.id) orderMap.set(o.id, o);
+                        });
+                        const mergedList = Array.from(orderMap.values()).sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+
+                        await fetch(CLOUD_ORDERS_ENDPOINT, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: 'mabrix_orders', data: { orders: mergedList } }),
+                            keepalive: true
+                        });
                     } catch(e){}
                 })();
+
+                try {
+                    await Promise.race([
+                        Promise.allSettled([apiPromise, cloudPromise]),
+                        new Promise(r => setTimeout(r, 450))
+                    ]);
+                } catch(e){}
             } catch (err) {}
 
             closeBookingModal();
             setTimeout(() => {
                 openWhatsAppDirect(CONFIG.whatsappNumber, text);
-            }, 250);
+            }, 100);
         }
 
         // Open WhatsApp directly in the app (strictly opens chat with 0332 4499022)
