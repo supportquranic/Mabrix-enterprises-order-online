@@ -665,6 +665,7 @@
 
         // DYNAMIC RATES (SYNCED LIVE WITH CLOUD & ADMIN PANEL)
         const CLOUD_RATES_ENDPOINT = 'https://api.restful-api.dev/objects/ff808181a09d98f701a18c462dec60f9';
+        const CLOUD_ORDERS_ENDPOINT = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a12ebed11e0c';
         let RATES = {
             domestic: 5000,
             commercial: 10000,
@@ -1002,18 +1003,39 @@
                     setTimeout(() => ch.close(), 1000);
                 } catch(e){}
 
-                // Send to backend API
+                // Send to backend API with keepalive
                 fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newOrderRecord)
+                    body: JSON.stringify(newOrderRecord),
+                    keepalive: true
                 }).catch(() => {});
+
+                // Direct Cloud DB sync fallback (ensures cross-device instant notification)
+                (async () => {
+                    try {
+                        const cRes = await fetch(CLOUD_ORDERS_ENDPOINT, { cache: 'no-store' });
+                        if (cRes.ok) {
+                            const cJson = await cRes.json();
+                            const cList = (cJson && cJson.data && Array.isArray(cJson.data.orders)) ? cJson.data.orders : [];
+                            if (!cList.some(o => o.id === newOrderRecord.id)) {
+                                cList.unshift(newOrderRecord);
+                                await fetch(CLOUD_ORDERS_ENDPOINT, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ name: 'mabrix_orders', data: { orders: cList } }),
+                                    keepalive: true
+                                });
+                            }
+                        }
+                    } catch(e){}
+                })();
             } catch (err) {}
 
             closeBookingModal();
             setTimeout(() => {
                 openWhatsAppDirect(CONFIG.whatsappNumber, text);
-            }, 100);
+            }, 250);
         }
 
         // Open WhatsApp directly in the app (strictly opens chat with 0332 4499022)

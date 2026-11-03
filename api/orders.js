@@ -1,33 +1,68 @@
 // Vercel Serverless Function: /api/orders
-// In-memory & /tmp scratchpad store for live incoming customer orders
+// Multi-Tier Persistent Store: Cloud Key-Value DB + Local /tmp Scratchpad + In-Memory Cache
 
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+const CLOUD_ORDERS_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a12ebed11e0c';
 const TMP_ORDERS_FILE = path.join(os.tmpdir(), 'mabrix_orders.json');
-let ordersStore = [];
+let memoryOrders = null;
 
-function getOrders() {
+async function getOrdersFromCloud() {
+    // 1. Try cloud store first
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2800);
+        const res = await fetch(CLOUD_ORDERS_URL, { signal: controller.signal, cache: 'no-store' });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+            const json = await res.json();
+            if (json && json.data && Array.isArray(json.data.orders)) {
+                memoryOrders = json.data.orders;
+                try { fs.writeFileSync(TMP_ORDERS_FILE, JSON.stringify(memoryOrders), 'utf-8'); } catch(e){}
+                return memoryOrders;
+            }
+        }
+    } catch(e){}
+
+    // 2. Fallback to /tmp scratchpad
     try {
         if (fs.existsSync(TMP_ORDERS_FILE)) {
             const raw = fs.readFileSync(TMP_ORDERS_FILE, 'utf-8');
-            ordersStore = JSON.parse(raw);
-            if (!Array.isArray(ordersStore)) ordersStore = [];
-            return ordersStore;
+            memoryOrders = JSON.parse(raw);
+            if (!Array.isArray(memoryOrders)) memoryOrders = [];
+            return memoryOrders;
         }
     } catch(e){}
-    return ordersStore;
+
+    // 3. Fallback to memory
+    if (Array.isArray(memoryOrders)) return memoryOrders;
+
+    return [];
 }
 
-function saveOrders(orders) {
-    ordersStore = orders;
+async function saveOrdersToCloud(orders) {
+    memoryOrders = orders;
     try {
         fs.writeFileSync(TMP_ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf-8');
     } catch(e){}
+
+    // Sync to cloud store
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        await fetch(CLOUD_ORDERS_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'mabrix_orders', data: { orders: orders } }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+    } catch(e){}
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,7 +79,7 @@ export default function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-        const currentOrders = getOrders();
+        const currentOrders = await getOrdersFromCloud();
         return res.status(200).json({
             success: true,
             count: currentOrders.length,
@@ -57,7 +92,7 @@ export default function handler(req, res) {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             const newOrder = {
                 id: body.id || 'MBX-' + Date.now().toString().slice(-6),
-                customerName: body.customerName || 'Anonymous',
+                customerName: body.customerName || 'Customer',
                 phone: body.phone || '',
                 area: body.area || 'Bahria Town',
                 address: body.address || '',
@@ -74,9 +109,11 @@ export default function handler(req, res) {
                 notes: body.notes || ''
             };
 
-            const currentOrders = getOrders();
-            currentOrders.unshift(newOrder);
-            saveOrders(currentOrders);
+            const currentOrders = await getOrdersFromCloud();
+            if (!currentOrders.some(o => o.id === newOrder.id)) {
+                currentOrders.unshift(newOrder);
+            }
+            await saveOrdersToCloud(currentOrders);
 
             return res.status(201).json({
                 success: true,
@@ -91,7 +128,7 @@ export default function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             const { id, status } = body;
-            const currentOrders = getOrders();
+            const currentOrders = await getOrdersFromCloud();
             const orderIndex = currentOrders.findIndex(o => o.id === id);
 
             if (orderIndex === -1) {
@@ -100,7 +137,7 @@ export default function handler(req, res) {
 
             currentOrders[orderIndex].status = status;
             currentOrders[orderIndex].updatedAt = new Date().toISOString();
-            saveOrders(currentOrders);
+            await saveOrdersToCloud(currentOrders);
 
             return res.status(200).json({
                 success: true,
