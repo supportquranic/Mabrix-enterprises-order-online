@@ -84,6 +84,40 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path == '/api/customer':
             query = urllib.parse.parse_qs(parsed.query)
+            if query.get('all', [''])[0] == 'true' or query.get('list', [''])[0] == 'true':
+                orders = read_orders()
+                cust_map = {}
+                for o in orders:
+                    p = o.get('phone', '').strip()
+                    if not p:
+                        continue
+                    if p not in cust_map:
+                        cust_map[p] = {
+                            'name': o.get('customerName') or o.get('name') or '',
+                            'phone': p,
+                            'area': o.get('area') or 'Bahria Town',
+                            'address': o.get('address') or '',
+                            'totalOrders': 1,
+                            'lastCylinderType': o.get('cylinderCode') or 'domestic',
+                            'lastOrderedAt': o.get('createdAt')
+                        }
+                    else:
+                        cust_map[p]['totalOrders'] += 1
+                        if o.get('createdAt') and (not cust_map[p]['lastOrderedAt'] or o.get('createdAt') > cust_map[p]['lastOrderedAt']):
+                            cust_map[p]['lastOrderedAt'] = o.get('createdAt')
+                            cust_map[p]['lastCylinderType'] = o.get('cylinderCode') or cust_map[p]['lastCylinderType']
+                            if o.get('address'):
+                                cust_map[p]['address'] = o.get('address')
+                cust_list = list(cust_map.values())
+                cust_list.sort(key=lambda x: (x.get('lastOrderedAt') or ''), reverse=True)
+                response_data = json.dumps({'success': True, 'count': len(cust_list), 'customers': cust_list}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(response_data)))
+                self.end_headers()
+                self.wfile.write(response_data)
+                return
+
             raw_phone = query.get('phone', [''])[0]
             clean_phone = ''.join(ch for ch in str(raw_phone) if ch.isdigit())
             if clean_phone.startswith('92'):

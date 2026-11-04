@@ -57,6 +57,29 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
 
+    // List all regular customers for Admin Customer Directory
+    if (req.query && (req.query.all === 'true' || req.query.list === 'true')) {
+        try {
+            const db = await getMongoDb();
+            if (!db) {
+                return res.status(200).json({ success: true, count: 0, customers: [] });
+            }
+            const customers = await db.collection('customers')
+                .find({})
+                .project({ _id: 0 })
+                .sort({ lastOrderedAt: -1, totalOrders: -1 })
+                .toArray();
+
+            return res.status(200).json({
+                success: true,
+                count: customers.length,
+                customers: customers
+            });
+        } catch (err) {
+            return res.status(200).json({ success: false, count: 0, customers: [] });
+        }
+    }
+
     const rawPhone = (req.query && req.query.phone) || '';
     const clean = normalizePhone(rawPhone);
 

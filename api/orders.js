@@ -109,12 +109,12 @@ async function pushToCloudWithRetry(orders) {
 }
 
 async function getAllOrdersMerged() {
-    // 1. Try MongoDB Atlas First
+    // 1. Try MongoDB Atlas First (Primary Source of Truth)
     const db = await getMongoDb();
     if (db) {
         try {
             const docs = await db.collection('orders').find({}).project({ _id: 0 }).sort({ createdAt: -1 }).toArray();
-            if (Array.isArray(docs) && docs.length > 0) {
+            if (Array.isArray(docs)) {
                 memoryOrders = docs;
                 writeToTmp(docs);
                 return docs;
