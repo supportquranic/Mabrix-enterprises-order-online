@@ -149,7 +149,7 @@ async function getAllOrdersMerged() {
 }
 
 async function addAndSaveOrder(newOrder) {
-    // 1. Save to MongoDB Atlas atomically
+    // 1. Save to MongoDB Atlas atomically (Orders & Customers directory)
     const db = await getMongoDb();
     if (db) {
         try {
@@ -158,6 +158,25 @@ async function addAndSaveOrder(newOrder) {
                 { $set: newOrder },
                 { upsert: true }
             );
+
+            if (newOrder.phone) {
+                await db.collection('customers').updateOne(
+                    { phone: newOrder.phone },
+                    {
+                        $set: {
+                            name: newOrder.customerName,
+                            phone: newOrder.phone,
+                            area: newOrder.area,
+                            address: newOrder.address,
+                            lastCylinderType: newOrder.cylinderCode,
+                            lastOrderedAt: newOrder.createdAt
+                        },
+                        $inc: { totalOrders: 1 },
+                        $setOnInsert: { firstOrderedAt: newOrder.createdAt }
+                    },
+                    { upsert: true }
+                );
+            }
         } catch(e) {}
     }
 

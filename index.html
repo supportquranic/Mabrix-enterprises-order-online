@@ -248,6 +248,25 @@
         <!-- MAIN 2 BIG CARDS (WITHOUT PILLS, BOLD TITLES, UNIFORM BORDERS) -->
         <main class="flex-1 px-3.5 py-2.5 flex flex-col justify-between gap-3" id="mainCardsContainer">
             
+            <!-- RETURNING REGULAR CUSTOMER 1-CLICK BAR (AUTO-SHOWN IF PROFILE SAVED) -->
+            <div id="quickReorderBar" class="hidden bg-gradient-to-r from-[#15387C] to-[#1e489e] text-white p-3 rounded-2xl shadow-md border border-[#F6AD3A]/30 flex items-center justify-between gap-2.5 transition-all">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-black truncate text-white">Welcome back, <span id="quickCustomerName" class="text-[#F6AD3A]">Customer</span>! 👋</span>
+                        </div>
+                        <p class="text-[10px] text-slate-200 truncate" id="quickCustomerAddress">Saved delivery address ready</p>
+                    </div>
+                </div>
+                <button onclick="quickReorderLastItem()" class="shrink-0 bg-[#F6AD3A] hover:bg-[#e59d2a] active:scale-95 text-[#15387C] font-black text-xs py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 transition">
+                    <span>1-Tap Order</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+
             <!-- CARD 1: DOMESTIC CYLINDER 10 KG -->
             <div class="big-lpg-card card-domestic flex-1 p-4 sm:p-5 flex flex-col justify-between shadow-card-blue" id="cardDomestic">
                 <div>
@@ -443,6 +462,14 @@
                         <span class="text-[10px] text-[#64748b] uppercase font-bold block">Quantity</span>
                         <span class="text-[#F6AD3A] bg-[#15387C] px-2 py-0.5 rounded-lg font-black text-xs inline-block" id="modalSelectedQty">1 Cylinder</span>
                     </div>
+                </div>
+
+                <!-- Auto-fill indicator badge for regular customers -->
+                <div id="modalPrefillBadge" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-3 py-2 flex items-center justify-between text-[11px]">
+                    <span class="flex items-center gap-1.5 font-bold">
+                        <i class="fa-solid fa-bolt text-amber-500"></i> Auto-filled from your previous order
+                    </span>
+                    <button type="button" onclick="clearSavedProfile()" class="text-slate-500 hover:text-red-600 underline font-semibold text-[10px]">Change / Clear</button>
                 </div>
 
                 <!-- Customer Name -->
@@ -770,6 +797,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadLiveRates();
             setInterval(loadLiveRates, 6000);
+            checkReturningCustomer();
         });
 
         // State
@@ -857,7 +885,54 @@
             openWhatsAppDirect(CONFIG.whatsappNumber, text);
         }
 
-        // Open detailed booking modal
+        // ==========================================
+        // REGULAR CUSTOMER 1-CLICK MEMORY CONTROLLER
+        // ==========================================
+        function loadCustomerProfile() {
+            try {
+                const raw = localStorage.getItem('mabrix_customer_profile');
+                if (!raw) return null;
+                const profile = JSON.parse(raw);
+                if (profile && profile.name) return profile;
+            } catch(e) {}
+            return null;
+        }
+
+        function checkReturningCustomer() {
+            const profile = loadCustomerProfile();
+            const bar = document.getElementById('quickReorderBar');
+            if (profile && profile.name) {
+                if (bar) bar.classList.remove('hidden');
+                const nameEl = document.getElementById('quickCustomerName');
+                if (nameEl) nameEl.textContent = profile.name.split(' ')[0] || profile.name;
+                const addrEl = document.getElementById('quickCustomerAddress');
+                if (addrEl) addrEl.textContent = `${profile.area || ''} • ${profile.address || ''}`;
+            } else {
+                if (bar) bar.classList.add('hidden');
+            }
+        }
+
+        function quickReorderLastItem() {
+            const profile = loadCustomerProfile();
+            const preferredType = (profile && profile.lastCylinderType === 'commercial') ? 'commercial' : 'domestic';
+            openBookingModal(preferredType);
+        }
+
+        function clearSavedProfile() {
+            if (confirm("Clear your saved details for this order?")) {
+                const nameInp = document.getElementById('custName');
+                const phoneInp = document.getElementById('custPhone');
+                const addrInp = document.getElementById('custAddress');
+                if (nameInp) nameInp.value = '';
+                if (phoneInp) phoneInp.value = '';
+                if (addrInp) addrInp.value = '';
+                const prefillBadge = document.getElementById('modalPrefillBadge');
+                if (prefillBadge) prefillBadge.classList.add('hidden');
+                if (nameInp) nameInp.focus();
+            }
+        }
+
+        // Open detailed booking modal (Auto-prefilled for returning customers)
         function openBookingModal(type) {
             state.selectedType = type;
             const isDomestic = (type === 'domestic');
@@ -869,8 +944,38 @@
             document.getElementById('modalSelectedName').textContent = itemName;
             document.getElementById('modalSelectedQty').textContent = `${qty} Cyl (PKR ${totalBill.toLocaleString()})`;
 
-            const modalSelect = document.getElementById('custArea');
-            if (modalSelect) modalSelect.value = state.selectedArea;
+            // Pre-fill from saved profile if returning customer (all fields remain fully editable)
+            const profile = loadCustomerProfile();
+            const prefillBadge = document.getElementById('modalPrefillBadge');
+            if (profile) {
+                if (profile.name && document.getElementById('custName')) document.getElementById('custName').value = profile.name;
+                if (profile.phone && document.getElementById('custPhone')) document.getElementById('custPhone').value = profile.phone;
+                if (profile.area && document.getElementById('custArea')) {
+                    document.getElementById('custArea').value = profile.area;
+                    state.selectedArea = profile.area;
+                    const areaBtnText = document.getElementById('selectedAreaText');
+                    if (areaBtnText) areaBtnText.textContent = profile.area;
+                } else if (document.getElementById('custArea')) {
+                    document.getElementById('custArea').value = state.selectedArea;
+                }
+                if (profile.address && document.getElementById('custAddress')) document.getElementById('custAddress').value = profile.address;
+                if (profile.deliveryTime) {
+                    const dt = document.querySelector(`input[name="deliveryTime"][value="${profile.deliveryTime}"]`);
+                    if (dt) dt.checked = true;
+                }
+                if (profile.paymentMethod) {
+                    const pm = document.querySelector(`input[name="paymentMethod"][value="${profile.paymentMethod}"]`);
+                    if (pm) {
+                        pm.checked = true;
+                        toggleBankBox(profile.paymentMethod.includes('Bank Transfer'));
+                    }
+                }
+                if (prefillBadge) prefillBadge.classList.remove('hidden');
+            } else {
+                const modalSelect = document.getElementById('custArea');
+                if (modalSelect) modalSelect.value = state.selectedArea;
+                if (prefillBadge) prefillBadge.classList.add('hidden');
+            }
 
             const modal = document.getElementById('bookingModal');
             const card = document.getElementById('bookingModalCard');
@@ -938,6 +1043,22 @@
                 document.getElementById('custAddress').focus();
                 return;
             }
+
+            // Auto-save/update customer profile for 1-click future bookings (saved on customer's device)
+            try {
+                const customerProfile = {
+                    name: name,
+                    phone: phone,
+                    area: area,
+                    address: address,
+                    lastCylinderType: isDomestic ? 'domestic' : 'commercial',
+                    deliveryTime: deliveryTime,
+                    paymentMethod: paymentMethod,
+                    lastOrderedAt: new Date().toISOString()
+                };
+                localStorage.setItem('mabrix_customer_profile', JSON.stringify(customerProfile));
+                checkReturningCustomer();
+            } catch(e) {}
 
             const cylinderDesc = (qty === 1) 
                 ? (isDomestic ? "a domestic cylinder" : "a commercial cylinder")
