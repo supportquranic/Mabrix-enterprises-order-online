@@ -4,10 +4,17 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import dns from 'dns';
+
+// Reliable DNS resolvers for SRV records across all network environments
+try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch(e) {}
 
 const CLOUD_ORDERS_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a12ebed11e0c';
 const TMP_ORDERS_FILE = path.join(os.tmpdir(), 'mabrix_orders.json');
-const MONGODB_URI = process.env.MONGODB_URI || '';
+const DEFAULT_MONGODB_URI = 'mongodb+srv://mateen836osb_db_user:gBSYR6QBilTZvaHy@mabrix.jqy9ejq.mongodb.net/mabrix?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI || DEFAULT_MONGODB_URI;
 
 let memoryOrders = null;
 let cachedClient = null;
@@ -21,8 +28,8 @@ async function getMongoDb() {
         const { MongoClient } = await import('mongodb');
         if (!cachedClient) {
             cachedClient = new MongoClient(MONGODB_URI, {
-                serverSelectionTimeoutMS: 3000,
-                connectTimeoutMS: 4000
+                serverSelectionTimeoutMS: 5000,
+                connectTimeoutMS: 6000
             });
             await cachedClient.connect();
         }
@@ -115,7 +122,7 @@ async function getAllOrdersMerged() {
         } catch (e) {}
     }
 
-    // 2. Multi-tier Fallback
+    // 2. Multi-tier Fallback (Cloud DB + /tmp + Memory)
     const cloudOrders = await fetchFromCloud();
     const tmpOrders = readFromTmp();
     const memOrders = Array.isArray(memoryOrders) ? memoryOrders : [];
@@ -124,7 +131,7 @@ async function getAllOrdersMerged() {
     memoryOrders = all;
     writeToTmp(all);
 
-    // If MongoDB is connected but was empty, seed MongoDB with existing orders
+    // If MongoDB is connected but was empty, populate it with existing orders
     if (db && all.length > 0) {
         try {
             const ops = all.map(o => ({
@@ -154,7 +161,7 @@ async function addAndSaveOrder(newOrder) {
         } catch(e) {}
     }
 
-    // 2. Always maintain local cache & cloud backup
+    // 2. Multi-tier Cache & Backup
     const cloudOrders = await fetchFromCloud();
     const tmpOrders = readFromTmp();
     const memOrders = Array.isArray(memoryOrders) ? memoryOrders : [];
