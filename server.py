@@ -82,6 +82,46 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(response_data)
             return
 
+        if parsed.path == '/api/customer':
+            query = urllib.parse.parse_qs(parsed.query)
+            raw_phone = query.get('phone', [''])[0]
+            clean_phone = ''.join(ch for ch in str(raw_phone) if ch.isdigit())
+            if clean_phone.startswith('92'):
+                clean_phone = clean_phone[2:]
+            if clean_phone.startswith('0'):
+                clean_phone = clean_phone[1:]
+
+            orders = read_orders()
+            found_cust = None
+            for o in reversed(orders):
+                p = o.get('phone', '')
+                cp = ''.join(ch for ch in str(p) if ch.isdigit())
+                if cp.startswith('92'):
+                    cp = cp[2:]
+                if cp.startswith('0'):
+                    cp = cp[1:]
+                if clean_phone and len(clean_phone) >= 7 and (clean_phone == cp or cp.endswith(clean_phone) or clean_phone.endswith(cp)):
+                    found_cust = {
+                        'name': o.get('customerName') or o.get('name') or '',
+                        'phone': p,
+                        'area': o.get('area') or 'Bahria Town',
+                        'address': o.get('address') or '',
+                        'lastCylinderType': o.get('cylinderCode') or 'domestic'
+                    }
+                    break
+
+            if found_cust:
+                response_data = json.dumps({'success': True, 'found': True, 'customer': found_cust}).encode('utf-8')
+            else:
+                response_data = json.dumps({'success': True, 'found': False}).encode('utf-8')
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response_data)))
+            self.end_headers()
+            self.wfile.write(response_data)
+            return
+
         if parsed.path == '/api/orders':
             orders = read_orders()
             response_data = json.dumps({'success': True, 'count': len(orders), 'orders': orders}).encode('utf-8')

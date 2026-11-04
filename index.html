@@ -798,6 +798,17 @@
             loadLiveRates();
             setInterval(loadLiveRates, 6000);
             checkReturningCustomer();
+
+            // Real-time phone lookup: auto-fills returning customer details on ANY new device or browser
+            const phoneInput = document.getElementById('custPhone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', (e) => {
+                    clearTimeout(phoneLookupDebounce);
+                    phoneLookupDebounce = setTimeout(() => {
+                        lookupCustomerByPhone(e.target.value);
+                    }, 350);
+                });
+            }
         });
 
         // State
@@ -916,6 +927,65 @@
             const profile = loadCustomerProfile();
             const preferredType = (profile && profile.lastCylinderType === 'commercial') ? 'commercial' : 'domestic';
             openBookingModal(preferredType);
+        }
+
+        let phoneLookupDebounce = null;
+        async function lookupCustomerByPhone(phoneVal) {
+            const digits = String(phoneVal).replace(/[^0-9]/g, '');
+            if (digits.length < 10) return;
+
+            try {
+                const res = await fetch(`/api/customer?phone=${encodeURIComponent(digits)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.found && data.customer) {
+                        const c = data.customer;
+                        const nameInp = document.getElementById('custName');
+                        const areaInp = document.getElementById('custArea');
+                        const addrInp = document.getElementById('custAddress');
+
+                        // Fill inputs if empty or user is on a new device/browser
+                        if (nameInp && (!nameInp.value || nameInp.value.trim() === '')) {
+                            nameInp.value = c.name;
+                        }
+                        if (areaInp && c.area) {
+                            areaInp.value = c.area;
+                            state.selectedArea = c.area;
+                            const areaBtnText = document.getElementById('selectedAreaText');
+                            if (areaBtnText) areaBtnText.textContent = c.area;
+                        }
+                        if (addrInp && (!addrInp.value || addrInp.value.trim() === '')) {
+                            addrInp.value = c.address;
+                        }
+
+                        // Show friendly auto-fill badge in modal
+                        const prefillBadge = document.getElementById('modalPrefillBadge');
+                        if (prefillBadge) {
+                            const firstName = (c.name || 'Regular Customer').split(' ')[0];
+                            prefillBadge.innerHTML = `
+                                <span class="flex items-center gap-1.5 font-bold">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i> Welcome back, ${firstName}! Details auto-filled
+                                </span>
+                                <button type="button" onclick="clearSavedProfile()" class="text-slate-500 hover:text-red-600 underline font-semibold text-[10px]">Change / Clear</button>
+                            `;
+                            prefillBadge.classList.remove('hidden');
+                        }
+
+                        // Store in current browser so next time it is instant 1-click here too!
+                        try {
+                            localStorage.setItem('mabrix_customer_profile', JSON.stringify({
+                                name: c.name,
+                                phone: c.phone || phoneVal,
+                                area: c.area,
+                                address: c.address,
+                                lastCylinderType: c.lastCylinderType || 'domestic',
+                                lastOrderedAt: new Date().toISOString()
+                            }));
+                            checkReturningCustomer();
+                        } catch(e) {}
+                    }
+                }
+            } catch(e) {}
         }
 
         function clearSavedProfile() {

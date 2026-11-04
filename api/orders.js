@@ -148,6 +148,14 @@ async function getAllOrdersMerged() {
     return all;
 }
 
+function normalizePhone(p) {
+    if (!p) return '';
+    let digits = String(p).replace(/[^0-9]/g, '');
+    if (digits.startsWith('92')) digits = digits.slice(2);
+    if (digits.startsWith('0')) digits = digits.slice(1);
+    return digits;
+}
+
 async function addAndSaveOrder(newOrder) {
     // 1. Save to MongoDB Atlas atomically (Orders & Customers directory)
     const db = await getMongoDb();
@@ -160,12 +168,19 @@ async function addAndSaveOrder(newOrder) {
             );
 
             if (newOrder.phone) {
+                const cleanPhone = normalizePhone(newOrder.phone);
                 await db.collection('customers').updateOne(
-                    { phone: newOrder.phone },
+                    {
+                        $or: [
+                            { cleanPhone: cleanPhone },
+                            { phone: newOrder.phone }
+                        ]
+                    },
                     {
                         $set: {
                             name: newOrder.customerName,
                             phone: newOrder.phone,
+                            cleanPhone: cleanPhone,
                             area: newOrder.area,
                             address: newOrder.address,
                             lastCylinderType: newOrder.cylinderCode,
