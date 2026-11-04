@@ -150,6 +150,32 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Attention Shake & Pop Animations for Returning Customer */
+        @keyframes gentleShake {
+            0%, 100% { transform: translateX(0) scale(1); }
+            15% { transform: translateX(-5px) scale(1.01) rotate(-0.8deg); }
+            30% { transform: translateX(4px) scale(1.01) rotate(0.8deg); }
+            45% { transform: translateX(-3px) rotate(-0.5deg); }
+            60% { transform: translateX(2px) rotate(0.5deg); }
+            75% { transform: translateX(-1px); }
+        }
+
+        @keyframes popWiggle {
+            0% { transform: scale(0.82) translateY(24px); opacity: 0; }
+            55% { transform: scale(1.03) translateY(0); opacity: 1; }
+            70% { transform: scale(0.98) rotate(-1.5deg); }
+            85% { transform: scale(1.01) rotate(1.2deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .animate-gentle-shake {
+            animation: gentleShake 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        .animate-pop-wiggle {
+            animation: popWiggle 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body class="selection:bg-[#15387C] selection:text-white">
@@ -250,7 +276,7 @@
             
             <!-- RETURNING REGULAR CUSTOMER 1-CLICK BAR (AUTO-SHOWN IF PROFILE SAVED) -->
             <div id="quickReorderBar" class="hidden bg-gradient-to-r from-[#15387C] to-[#1e489e] text-white p-3 rounded-2xl shadow-md border border-[#F6AD3A]/30 flex items-center justify-between gap-2.5 transition-all">
-                <div class="flex items-center gap-2.5 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="quickReorderLastItem()">
                     <div class="w-8 h-8 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
                         <i class="fa-solid fa-bolt"></i>
                     </div>
@@ -261,10 +287,15 @@
                         <p class="text-[10px] text-slate-200 truncate" id="quickCustomerAddress">Saved delivery address ready</p>
                     </div>
                 </div>
-                <button onclick="quickReorderLastItem()" class="shrink-0 bg-[#F6AD3A] hover:bg-[#e59d2a] active:scale-95 text-[#15387C] font-black text-xs py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 transition">
-                    <span>1-Tap Order</span>
-                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="quickReorderLastItem()" class="bg-[#F6AD3A] hover:bg-[#e59d2a] active:scale-95 text-[#15387C] font-black text-xs py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 transition">
+                        <span>1-Tap Order</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
+                    <button onclick="dismissQuickReorderBar(event)" type="button" class="w-6 h-6 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 active:scale-90 flex items-center justify-center transition" title="Dismiss banner">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- CARD 1: DOMESTIC CYLINDER 10 KG -->
@@ -428,6 +459,56 @@
             </div>
         </footer>
 
+    </div>
+
+    <!-- RETURNING REGULAR CUSTOMER POPUP MODAL -->
+    <div id="returningCustomerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div id="returningCustomerCard" class="w-full max-w-[420px] bg-white rounded-3xl p-5 shadow-2xl border-2 border-[#15387C] relative transform transition-all duration-300">
+            <!-- Close Cross Button -->
+            <button onclick="closeReturningPopup()" type="button" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-90 text-slate-500 hover:text-slate-800 flex items-center justify-center transition border border-slate-200" title="Close">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <!-- Header Badge & Icon -->
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#15387C] to-[#1e489e] text-[#F6AD3A] flex items-center justify-center text-xl shadow-md border border-[#F6AD3A]/40 shrink-0">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <div class="pr-6">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-[#F6AD3A] bg-[#fef7ec] px-2 py-0.5 rounded-full border border-[#f8d294]">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> Quick Re-order
+                    </span>
+                    <h3 class="font-display font-black text-lg text-[#15387C] leading-snug">Welcome Back, <span id="popupCustFirstName">Customer</span>! 👋</h3>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-600 mb-3.5 font-medium leading-relaxed">
+                Need an LPG refill? Your delivery details are saved from your last order — continue in 1 click or choose another cylinder.
+            </p>
+
+            <!-- Saved Order Summary Card -->
+            <div class="bg-[#f8fafc] border border-[#cbd7eb] rounded-2xl p-3.5 mb-4 text-xs space-y-2">
+                <div class="flex items-center justify-between text-slate-500 text-[11px]">
+                    <span class="font-bold uppercase tracking-wider">Previous Cylinder:</span>
+                    <span id="popupLastCylinder" class="font-black text-[#15387C] bg-white px-2.5 py-0.5 rounded-lg border border-[#cbd7eb]">Domestic 10 Kg</span>
+                </div>
+                <div class="flex items-start gap-2 pt-1.5 border-t border-slate-200 text-slate-700">
+                    <i class="fa-solid fa-location-dot text-[#F6AD3A] mt-0.5 text-xs shrink-0"></i>
+                    <span id="popupSavedAddress" class="font-medium text-[11px] leading-tight text-slate-600">Saved address</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-2">
+                <button onclick="continueWithPreviousOrder()" class="w-full bg-[#F6AD3A] hover:bg-[#e09a2b] active:scale-[0.98] text-[#15387C] font-black text-sm py-3.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition">
+                    <span>Continue with Previous Order</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+                <button onclick="closeReturningPopup()" type="button" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 font-bold text-xs py-2.5 px-4 rounded-xl transition">
+                    Order Something Else
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- COMPLETE ORDER & BOOKING MODAL -->
@@ -913,13 +994,71 @@
             const profile = loadCustomerProfile();
             const bar = document.getElementById('quickReorderBar');
             if (profile && profile.name) {
-                if (bar) bar.classList.remove('hidden');
+                if (bar) {
+                    bar.classList.remove('hidden');
+                    // Trigger gentle shake animation on load to catch attention
+                    bar.classList.remove('animate-gentle-shake');
+                    void bar.offsetWidth;
+                    bar.classList.add('animate-gentle-shake');
+                }
                 const nameEl = document.getElementById('quickCustomerName');
                 if (nameEl) nameEl.textContent = profile.name.split(' ')[0] || profile.name;
                 const addrEl = document.getElementById('quickCustomerAddress');
                 if (addrEl) addrEl.textContent = `${profile.area || ''} • ${profile.address || ''}`;
+
+                // Pop up the Welcome Back Modal if booking modal is not already open
+                const bookingModal = document.getElementById('bookingModal');
+                const isBookingModalOpen = bookingModal && !bookingModal.classList.contains('pointer-events-none');
+                if (!isBookingModalOpen && !sessionStorage.getItem('mabrix_returning_popup_dismissed')) {
+                    setTimeout(() => {
+                        showReturningPopup(profile);
+                    }, 400);
+                }
             } else {
                 if (bar) bar.classList.add('hidden');
+            }
+        }
+
+        function showReturningPopup(profile) {
+            const modal = document.getElementById('returningCustomerModal');
+            const card = document.getElementById('returningCustomerCard');
+            if (!modal || !card) return;
+
+            const firstName = (profile.name || 'Customer').split(' ')[0];
+            const nameEl = document.getElementById('popupCustFirstName');
+            if (nameEl) nameEl.textContent = firstName;
+
+            const isCommercial = profile.lastCylinderType === 'commercial';
+            const cylEl = document.getElementById('popupLastCylinder');
+            if (cylEl) cylEl.textContent = isCommercial ? 'Commercial 45 Kg' : 'Domestic 10 Kg';
+
+            const addrEl = document.getElementById('popupSavedAddress');
+            if (addrEl) addrEl.textContent = `${profile.area || 'Bahria Town'} — ${profile.address || 'Saved delivery address'}`;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('animate-pop-wiggle');
+            void card.offsetWidth;
+            card.classList.add('animate-pop-wiggle');
+        }
+
+        function closeReturningPopup() {
+            const modal = document.getElementById('returningCustomerModal');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+            sessionStorage.setItem('mabrix_returning_popup_dismissed', 'true');
+        }
+
+        function continueWithPreviousOrder() {
+            closeReturningPopup();
+            quickReorderLastItem();
+        }
+
+        function dismissQuickReorderBar(e) {
+            if (e) e.stopPropagation();
+            const bar = document.getElementById('quickReorderBar');
+            if (bar) {
+                bar.classList.add('hidden');
             }
         }
 
