@@ -556,12 +556,12 @@
                 <!-- Customer Name -->
                 <div>
                     <label class="block text-[#0f172a] font-bold mb-1">
-                        Customer Name / Business <span class="text-[#15387C]">*</span>
+                        Customer Name <span class="text-red-500">*</span>
                     </label>
                     <input 
                         type="text" 
                         id="custName" 
-                        placeholder="e.g. Customer Name / Business" 
+                        placeholder="e.g. Ali Ahmed" 
                         class="w-full bg-[#f8fafc] text-slate-900 placeholder-slate-400 px-3 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C] focus:ring-1 focus:ring-[#15387C]"
                     >
                 </div>
@@ -569,12 +569,12 @@
                 <!-- Contact Phone -->
                 <div>
                     <label class="block text-[#0f172a] font-bold mb-1">
-                        Contact Phone Number <span class="text-[#15387C]">*</span>
+                        Phone Number <span class="text-red-500">*</span>
                     </label>
                     <input 
                         type="tel" 
                         id="custPhone" 
-                        placeholder="e.g. 03XX XXXXXXX" 
+                        placeholder="e.g. 0332 4499022" 
                         class="w-full bg-[#f8fafc] text-slate-900 placeholder-slate-400 px-3 py-2.5 rounded-xl border border-[#cbd7eb] focus:outline-none focus:border-[#15387C] focus:ring-1 focus:ring-[#15387C]"
                     >
                 </div>
@@ -582,7 +582,7 @@
                 <!-- Delivery Area Selector -->
                 <div>
                     <label class="block text-[#0f172a] font-bold mb-1">
-                        Delivery Area <span class="text-[#15387C]">*</span>
+                        Delivery Location / Area <span class="text-red-500">*</span>
                     </label>
                     <select 
                         id="custArea" 
@@ -600,7 +600,7 @@
                 <!-- Full Delivery Address -->
                 <div>
                     <label class="block text-[#0f172a] font-bold mb-1">
-                        Full Customer Address & Landmark <span class="text-[#15387C]">*</span>
+                        Street Address & Landmark <span class="text-red-500">*</span>
                     </label>
                     <textarea 
                         id="custAddress" 
@@ -965,16 +965,9 @@
             }
         }
 
-        // Quick WhatsApp Order
+        // Order Button Handler -> Opens booking modal to collect phone, location & address
         function quickOrderWhatsApp(type) {
-            const isDomestic = (type === 'domestic');
-            const qty = isDomestic ? state.domesticQty : state.commercialQty;
-            const cylinderDesc = (qty === 1) 
-                ? (isDomestic ? "a domestic cylinder" : "a commercial cylinder")
-                : `${qty} ${isDomestic ? "domestic cylinders" : "commercial cylinders"}`;
-
-            const text = `Salam , i need ${cylinderDesc} as soon as possible at ${state.selectedArea}. please confirm my order with ok .`;
-            openWhatsAppDirect(CONFIG.whatsappNumber, text);
+            openBookingModal(type);
         }
 
         // ==========================================
@@ -1244,17 +1237,18 @@
             const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : "Cash on Delivery (COD)";
 
             if (!name) {
-                alert("Please enter customer or business name.");
+                alert("Please enter your name.");
                 document.getElementById('custName').focus();
                 return;
             }
-            if (!phone) {
-                alert("Please enter customer phone number.");
+            const phoneDigits = String(phone).replace(/[^0-9]/g, '');
+            if (!phone || phoneDigits.length < 9) {
+                alert("Please enter your contact phone number.");
                 document.getElementById('custPhone').focus();
                 return;
             }
             if (!address) {
-                alert("Please enter full delivery address.");
+                alert("Please enter your full delivery address.");
                 document.getElementById('custAddress').focus();
                 return;
             }
@@ -1275,20 +1269,17 @@
                 checkReturningCustomer();
             } catch(e) {}
 
-            const cylinderDesc = (qty === 1) 
-                ? (isDomestic ? "a domestic cylinder" : "a commercial cylinder")
-                : `${qty} ${isDomestic ? "domestic cylinders" : "commercial cylinders"}`;
-            const timeDesc = deliveryTime.toLowerCase().includes("24") 
-                ? "within 24 hours" 
-                : "as soon as possible";
-
-            let text = `as Salam my name is ${name} , i need ${cylinderDesc} ${timeDesc} at ${area} ${address}. please confirm my order with ok .`;
-
-            if (paymentMethod.includes('Bank Transfer')) {
-                text += `\n\n*(Payment Method: Bank Transfer - PKR ${totalBill.toLocaleString()}/- | Askari Bank A/C: ${CONFIG.accountNumber})*`;
-            } else {
-                text += `\n\n*(Payment: Cash on Delivery - PKR ${totalBill.toLocaleString()}/-)*`;
-            }
+            // WhatsApp Order Message Template (one detail per line only)
+            const text = 
+`Hello, please confirm this order:
+Name: ${name}
+Phone: ${phone}
+Location: ${area}
+Address: ${address}
+Order: ${qty} x ${itemName}
+Total: PKR ${totalBill.toLocaleString()}
+Delivery Time: ${deliveryTime}
+Payment: ${paymentMethod}`;
 
             // Record order in backend & local storage for Admin Dashboard
             try {
