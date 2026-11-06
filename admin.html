@@ -831,9 +831,9 @@
                         <!-- Live Calculation Preview Grid -->
                         <div class="grid grid-cols-2 gap-2 bg-[#f8fafc] p-3 rounded-xl border border-[#cbd7eb]">
                             <div>
-                                <span class="text-[10px] uppercase font-bold text-slate-500 block">Domestic (Default 20 Kg)</span>
-                                <span id="previewDomPrice" class="text-sm font-black text-[#15387C]">PKR 11,200</span>
-                                <span class="text-[9px] text-slate-400 block mt-0.5">(20 kg × rate)</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-500 block">Domestic (Default 1 Kg)</span>
+                                <span id="previewDomPrice" class="text-sm font-black text-[#15387C]">PKR 560</span>
+                                <span class="text-[9px] text-slate-400 block mt-0.5">(1 kg × rate)</span>
                             </div>
                             <div class="border-l border-slate-200 pl-2.5">
                                 <span class="text-[10px] uppercase font-bold text-[#F6AD3A] block">Commercial (Locked 45 Kg)</span>
@@ -1027,8 +1027,8 @@
                                 class="cursor-pointer border-2 border-[#15387C] bg-[#eef3fb] rounded-xl p-2.5 text-center transition select-none"
                             >
                                 <i class="fa-solid fa-house-chimney text-[#15387C] text-sm mb-1 block"></i>
-                                <span class="font-extrabold text-[#15387C] block text-xs">Domestic (20 Kg)</span>
-                                <span class="text-[10px] text-slate-600 font-bold block mt-0.5" id="manualDomPriceLabel">PKR 11,200</span>
+                                <span class="font-extrabold text-[#15387C] block text-xs">Domestic (1 Kg)</span>
+                                <span class="text-[10px] text-slate-600 font-bold block mt-0.5" id="manualDomPriceLabel">PKR 560</span>
                             </div>
 
                             <div 
@@ -1407,7 +1407,7 @@
             }
             const qty = Number(o.quantity) || 1;
             const rate = Number(RATES.perKg || RATES.commercial || 560);
-            const weight = (o.cylinderCode === 'commercial') ? 45 : (Number(o.weightKg) || 20);
+            const weight = (o.cylinderCode === 'commercial') ? 45 : (Number(o.weightKg) || 1);
             return qty * weight * rate;
         }
 
@@ -1463,11 +1463,11 @@
             const rate = Number(val) || 0;
             const domEl = document.getElementById('previewDomPrice');
             const comEl = document.getElementById('previewComPrice');
-            if (domEl) domEl.textContent = `PKR ${(rate * 20).toLocaleString()}`;
+            if (domEl) domEl.textContent = `PKR ${(rate * 1).toLocaleString()}`;
             if (comEl) comEl.textContent = `PKR ${(rate * 45).toLocaleString()}`;
             const manualDom = document.getElementById('manualDomPriceLabel');
             const manualCom = document.getElementById('manualComPriceLabel');
-            if (manualDom) manualDom.textContent = `PKR ${(rate * 20).toLocaleString()}`;
+            if (manualDom) manualDom.textContent = `PKR ${(rate * 1).toLocaleString()}`;
             if (manualCom) manualCom.textContent = `PKR ${(rate * 45).toLocaleString()}`;
         }
 

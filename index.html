@@ -316,7 +316,7 @@
                                 <button onclick="updateDomesticWeight(-1)" type="button" class="w-7 h-7 rounded-lg bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs font-black active:scale-90 transition border border-[#cbd7eb]" title="Decrease Weight (min 1 kg)">
                                     <i class="fa-solid fa-chevron-down"></i>
                                 </button>
-                                <span id="domesticWeightDisplay" class="text-2xl sm:text-3xl font-black text-[#15387C] font-display leading-none min-w-[70px] text-center">20 Kg</span>
+                                <span id="domesticWeightDisplay" class="text-2xl sm:text-3xl font-black text-[#15387C] font-display leading-none min-w-[70px] text-center">1 Kg</span>
                                 <button onclick="updateDomesticWeight(1)" type="button" class="w-7 h-7 rounded-lg bg-[#15387C] hover:bg-[#0f295b] text-white flex items-center justify-center text-xs font-black active:scale-90 transition shadow-sm" title="Increase Weight (max 45 kg)">
                                     <i class="fa-solid fa-chevron-up"></i>
                                 </button>
@@ -353,7 +353,7 @@
                 <div class="pt-3 mt-2 border-t border-[#cbd7eb]">
                     <div class="flex items-center justify-between mb-2.5">
                         <div class="flex items-baseline gap-1.5">
-                            <span id="domesticPriceDisplay" class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 11,200</span>
+                            <span id="domesticPriceDisplay" class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 560</span>
                             <span id="domesticRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold">/ (PKR 560/kg)</span>
                         </div>
 
@@ -391,13 +391,8 @@
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="flex items-center gap-1.5 justify-end">
-                                <span class="w-6 h-6 rounded-lg bg-[#fef7ec] text-[#F6AD3A] border border-[#f8d294] flex items-center justify-center text-xs font-bold shadow-xs">
-                                    <i class="fa-solid fa-lock"></i>
-                                </span>
-                                <span class="text-2xl sm:text-3xl font-black text-[#F6AD3A] font-display leading-none">45 Kg</span>
-                            </div>
-                            <span class="text-[10px] text-[#64748b] block font-bold uppercase mt-1">Locked Commercial</span>
+                            <span class="text-2xl sm:text-3xl font-black text-[#F6AD3A] font-display leading-none">45 Kg</span>
+                            <span class="text-[10px] text-[#64748b] block font-bold uppercase mt-1">Net Weight</span>
                         </div>
                     </div>
 
@@ -503,7 +498,7 @@
             <div class="bg-[#f8fafc] border border-[#cbd7eb] rounded-2xl p-3.5 mb-4 text-xs space-y-2">
                 <div class="flex items-center justify-between text-slate-500 text-[11px]">
                     <span class="font-bold uppercase tracking-wider">Previous Cylinder:</span>
-                    <span id="popupLastCylinder" class="font-black text-[#15387C] bg-white px-2.5 py-0.5 rounded-lg border border-[#cbd7eb]">Domestic 20 Kg</span>
+                    <span id="popupLastCylinder" class="font-black text-[#15387C] bg-white px-2.5 py-0.5 rounded-lg border border-[#cbd7eb]">Domestic 1 Kg</span>
                 </div>
                 <div class="flex items-start gap-2 pt-1.5 border-t border-slate-200 text-slate-700">
                     <i class="fa-solid fa-location-dot text-[#F6AD3A] mt-0.5 text-xs shrink-0"></i>
@@ -550,7 +545,7 @@
                 <div class="bg-[#eef3fb] rounded-2xl p-3 border border-[#cbd7eb] flex items-center justify-between">
                     <div>
                         <span class="text-[10px] text-[#64748b] uppercase font-bold block">Selected Cylinder</span>
-                        <span class="text-[#15387C] font-extrabold text-sm" id="modalSelectedName">Domestic Cylinder (20 Kg)</span>
+                        <span class="text-[#15387C] font-extrabold text-sm" id="modalSelectedName">Domestic Cylinder (1 Kg)</span>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] text-[#64748b] uppercase font-bold block">Quantity</span>
@@ -797,7 +792,7 @@
 
         function getDomesticUnitPrice() {
             const rate = RATES.perKg || 560;
-            return (state.domesticWeight || 20) * rate;
+            return (state.domesticWeight || 1) * rate;
         }
 
         function getCommercialUnitPrice() {
@@ -827,7 +822,7 @@
                 const isDom = (state.selectedType === 'domestic');
                 const qty = isDom ? state.domesticQty : state.commercialQty;
                 const unitPrice = isDom ? domUnitPrice : comUnitPrice;
-                const weight = isDom ? (state.domesticWeight || 20) : 45;
+                const weight = isDom ? (state.domesticWeight || 1) : 45;
                 const itemName = isDom ? `Domestic Cylinder (${weight} Kg)` : `Commercial Cylinder (45 Kg)`;
                 const total = qty * unitPrice;
 
@@ -941,14 +936,14 @@
         const state = {
             domesticQty: 1,
             commercialQty: 1,
-            domesticWeight: 20,
+            domesticWeight: 1,
             commercialWeight: 45,
             selectedType: 'domestic',
             selectedArea: 'Bahria Town'
         };
 
         function updateDomesticWeight(delta) {
-            state.domesticWeight = Math.max(1, Math.min(45, (state.domesticWeight || 20) + delta));
+            state.domesticWeight = Math.max(1, Math.min(45, (state.domesticWeight || 1) + delta));
             const weightDisplay = document.getElementById('domesticWeightDisplay');
             if (weightDisplay) weightDisplay.textContent = `${state.domesticWeight} Kg`;
             refreshCardPrices();
@@ -1086,7 +1081,7 @@
 
             const isCommercial = profile.lastCylinderType === 'commercial';
             const cylEl = document.getElementById('popupLastCylinder');
-            if (cylEl) cylEl.textContent = isCommercial ? 'Commercial 45 Kg' : `Domestic ${profile.lastWeightKg || 20} Kg`;
+            if (cylEl) cylEl.textContent = isCommercial ? 'Commercial 45 Kg' : `Domestic ${profile.lastWeightKg || 1} Kg`;
 
             const addrEl = document.getElementById('popupSavedAddress');
             if (addrEl) addrEl.textContent = `${profile.area || 'Bahria Town'} — ${profile.address || 'Saved delivery address'}`;
@@ -1206,7 +1201,7 @@
         function openBookingModal(type) {
             state.selectedType = type;
             const isDomestic = (type === 'domestic');
-            const weight = isDomestic ? (state.domesticWeight || 20) : 45;
+            const weight = isDomestic ? (state.domesticWeight || 1) : 45;
             const itemName = isDomestic ? `Domestic Cylinder (${weight} Kg)` : `Commercial Cylinder (45 Kg)`;
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
             const ratePerKg = RATES.perKg || 560;
@@ -1284,7 +1279,7 @@
         // Submit complete order to WhatsApp
         async function submitOrderToWhatsApp() {
             const isDomestic = (state.selectedType === 'domestic');
-            const weightKg = isDomestic ? (state.domesticWeight || 20) : 45;
+            const weightKg = isDomestic ? (state.domesticWeight || 1) : 45;
             const itemName = isDomestic ? `Domestic Cylinder (${weightKg} Kg)` : `Commercial Cylinder (45 Kg)`;
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
             const ratePerKg = RATES.perKg || 560;
