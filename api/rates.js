@@ -9,8 +9,9 @@ const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1
 const TMP_FILE = path.join(os.tmpdir(), 'mabrix_rates.json');
 
 const DEFAULT_RATES = {
-    domestic: 5000,
-    commercial: 10000,
+    perKg: 560,
+    domestic: 560,
+    commercial: 560,
     isDefault: true,
     isCustom: false,
     updatedAt: "2026-01-01T00:00:00.000Z"
@@ -27,10 +28,12 @@ async function getStoredRates() {
         clearTimeout(timeoutId);
         if (res.ok) {
             const json = await res.json();
-            if (json && json.data && json.data.domestic && json.data.commercial) {
+            if (json && json.data) {
+                const ratePerKg = Number(json.data.perKg || json.data.commercial || 560);
                 memoryRates = {
-                    domestic: Number(json.data.domestic),
-                    commercial: Number(json.data.commercial),
+                    perKg: ratePerKg,
+                    domestic: ratePerKg,
+                    commercial: ratePerKg,
                     isDefault: false,
                     isCustom: true,
                     updatedAt: json.data.updatedAt || new Date().toISOString()
@@ -49,7 +52,13 @@ async function getStoredRates() {
         if (fs.existsSync(TMP_FILE)) {
             const raw = fs.readFileSync(TMP_FILE, 'utf-8');
             memoryRates = JSON.parse(raw);
-            return memoryRates;
+            if (memoryRates) {
+                const ratePerKg = Number(memoryRates.perKg || memoryRates.commercial || 560);
+                memoryRates.perKg = ratePerKg;
+                memoryRates.domestic = ratePerKg;
+                memoryRates.commercial = ratePerKg;
+                return memoryRates;
+            }
         }
     } catch(e){}
 
@@ -104,9 +113,11 @@ export default async function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             const current = await getStoredRates();
+            const ratePerKg = Number(body.perKg || body.commercial || body.domestic || current.perKg || 560);
             const updated = {
-                domestic: (body && body.domestic !== undefined) ? Number(body.domestic) : current.domestic,
-                commercial: (body && body.commercial !== undefined) ? Number(body.commercial) : current.commercial,
+                perKg: ratePerKg,
+                domestic: ratePerKg,
+                commercial: ratePerKg,
                 isDefault: false,
                 isCustom: true,
                 updatedAt: (body && body.updatedAt) 

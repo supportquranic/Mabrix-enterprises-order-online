@@ -25,14 +25,20 @@ if not os.path.exists(ORDERS_FILE):
 
 if not os.path.exists(RATES_FILE):
     with open(RATES_FILE, 'w', encoding='utf-8') as f:
-        json.dump({'domestic': 5000, 'commercial': 10000, 'isDefault': True, 'isCustom': False, 'updatedAt': '2026-01-01T00:00:00.000Z'}, f, indent=2)
+        json.dump({'perKg': 560, 'domestic': 560, 'commercial': 560, 'isDefault': True, 'isCustom': False, 'updatedAt': '2026-01-01T00:00:00.000Z'}, f, indent=2)
 
 def read_rates():
     try:
         with open(RATES_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+            if 'perKg' not in data:
+                rate = data.get('commercial') or data.get('domestic') or 560
+                data['perKg'] = rate
+                data['domestic'] = rate
+                data['commercial'] = rate
+            return data
     except Exception:
-        return {'domestic': 5000, 'commercial': 10000, 'isDefault': True, 'isCustom': False, 'updatedAt': '2026-01-01T00:00:00.000Z'}
+        return {'perKg': 560, 'domestic': 560, 'commercial': 560, 'isDefault': True, 'isCustom': False, 'updatedAt': '2026-01-01T00:00:00.000Z'}
 
 def write_rates(rates):
     try:
@@ -180,10 +186,11 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
                 body = {}
 
             current = read_rates()
-            if 'domestic' in body and body['domestic'] is not None:
-                current['domestic'] = int(body['domestic'])
-            if 'commercial' in body and body['commercial'] is not None:
-                current['commercial'] = int(body['commercial'])
+            rate_val = body.get('perKg') or body.get('commercial') or body.get('domestic') or current.get('perKg', 560)
+            rate_int = int(rate_val)
+            current['perKg'] = rate_int
+            current['domestic'] = rate_int
+            current['commercial'] = rate_int
             current['isDefault'] = False
             current['isCustom'] = True
             current['updatedAt'] = body.get('updatedAt') or datetime.now().isoformat()
@@ -207,8 +214,10 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
             orders = read_orders()
             new_id = body.get('id') or f"MBX-{int(datetime.now().timestamp() * 1000) % 1000000}"
             cylinder_code = body.get('cylinderCode', 'domestic')
+            weight_kg = int(body.get('weightKg', 45 if cylinder_code == 'commercial' else 20))
+            price_per_kg = int(body.get('pricePerKg', 560))
             quantity = int(body.get('quantity', 1))
-            unit_price = int(body.get('pricePerUnit', 10000 if cylinder_code == 'commercial' else 5000))
+            unit_price = int(body.get('pricePerUnit', weight_kg * price_per_kg))
             total_price = int(body.get('totalPrice', quantity * unit_price))
 
             order = {
@@ -217,8 +226,10 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
                 'phone': body.get('phone', ''),
                 'area': body.get('area', 'Bahria Town'),
                 'address': body.get('address', ''),
-                'cylinderType': body.get('cylinderType', 'Domestic Cylinder (10 Kg)'),
+                'cylinderType': body.get('cylinderType', f"{'Commercial' if cylinder_code == 'commercial' else 'Domestic'} Cylinder ({weight_kg} Kg)"),
                 'cylinderCode': cylinder_code,
+                'weightKg': weight_kg,
+                'pricePerKg': price_per_kg,
                 'quantity': quantity,
                 'pricePerUnit': unit_price,
                 'totalPrice': total_price,
