@@ -301,8 +301,8 @@
             <!-- CARD 1: DOMESTIC CYLINDER 10 KG -->
             <div class="big-lpg-card card-domestic flex-1 p-4 sm:p-5 flex flex-col justify-between shadow-card-blue" id="cardDomestic">
                 <div>
-                    <!-- Title & Badge -->
-                    <div class="flex items-baseline justify-between pt-1">
+                    <!-- Title & Net Weight + Price Header -->
+                    <div class="flex items-start justify-between gap-3 pt-0.5">
                         <div>
                             <h2 class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight leading-none">
                                 Domestic Cylinder
@@ -312,22 +312,26 @@
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <span id="headerWeightBadge" class="text-xs font-black text-[#15387C] bg-white border border-[#cbd7eb] px-2.5 py-1 rounded-lg shadow-xs block">
+                            <span id="headerWeightBadge" class="text-xs sm:text-sm font-black text-[#15387C] bg-white border border-[#cbd7eb] px-2.5 py-0.5 rounded-lg shadow-xs inline-block">
                                 10 Kg Net
                             </span>
+                            <div class="mt-1">
+                                <span id="domesticPriceDisplay" class="font-display font-black text-lg sm:text-xl text-[#15387C] leading-none block">PKR 5,600</span>
+                                <span id="domesticRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold block mt-0.5">@ PKR 560/kg</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- REFERENCE WEIGHT SELECTOR GAUGE (1 - 45 KG, SCROLL LEFT / RIGHT) -->
-                    <div class="bg-white border-2 border-[#15387C]/20 hover:border-[#15387C] rounded-2xl p-3 sm:p-3.5 shadow-sm transition-all duration-200 mt-3 relative select-none">
+                    <div class="bg-white border-2 border-[#15387C]/20 hover:border-[#15387C] rounded-2xl p-2.5 sm:p-3 shadow-sm transition-all duration-200 mt-3 relative select-none">
                         <!-- Top Readout Row: Previous Number, Big Selected Center Weight, Next Number -->
-                        <div class="flex items-center justify-between px-1 mb-1">
+                        <div class="flex items-center justify-between px-1 mb-0.5">
                             <!-- Previous Number on Left -->
                             <button 
                                 id="dialPrevBtn" 
                                 type="button" 
                                 onclick="stepDomesticWeight(-1)" 
-                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1.5 px-2.5 rounded-xl transition active:scale-90"
+                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1 px-2 rounded-xl transition active:scale-90"
                                 title="Previous weight"
                             >
                                 <i class="fa-solid fa-chevron-left text-[10px]"></i>
@@ -338,10 +342,10 @@
                             <!-- Big Center Real Actual Selected Weight -->
                             <div class="text-center cursor-default">
                                 <div class="flex items-baseline justify-center gap-1 leading-none">
-                                    <span id="domesticWeightDisplay" class="font-display font-black text-3xl sm:text-4xl text-[#15387C] tracking-tight">10</span>
-                                    <span class="font-black text-base text-[#15387C] uppercase">Kg</span>
+                                    <span id="domesticWeightDisplay" class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight">10</span>
+                                    <span class="font-black text-sm text-[#15387C] uppercase">Kg</span>
                                 </div>
-                                <span class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Scroll Left / Right (1 - 45 Kg)</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">Scroll Left / Right (1 - 45 Kg)</span>
                             </div>
 
                             <!-- Next Number on Right -->
@@ -349,7 +353,7 @@
                                 id="dialNextBtn" 
                                 type="button" 
                                 onclick="stepDomesticWeight(1)" 
-                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1.5 px-2.5 rounded-xl transition active:scale-90"
+                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1 px-2 rounded-xl transition active:scale-90"
                                 title="Next weight"
                             >
                                 <span id="dialNextNum" class="text-sm font-black">11</span>
@@ -361,66 +365,24 @@
                         <!-- Pointer Indicator Needle (Reference Style) -->
                         <div class="relative w-full flex flex-col items-center pointer-events-none z-20 -mb-0.5">
                             <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#15387C] drop-shadow-sm"></div>
-                            <div class="w-[2.5px] h-3.5 bg-[#15387C] rounded-full"></div>
+                            <div class="w-[2.5px] h-3 bg-[#15387C] rounded-full"></div>
                         </div>
 
                         <!-- Horizontal Scrollable Ruler / Dial Track with Edge Fade Gradients -->
                         <div class="relative w-full overflow-hidden" style="mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);">
                             <div 
                                 id="dialRulerTrack" 
-                                class="dial-ruler-track flex overflow-x-auto no-scrollbar py-2"
+                                class="dial-ruler-track flex overflow-x-auto no-scrollbar py-1.5"
                                 style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; cursor: grab;"
                             >
                                 <!-- Injected dynamically by JS: 45 ticks from 1 to 45 with padding -->
                             </div>
                         </div>
                     </div>
-
-                    <!-- Highlights & Specs -->
-                    <div class="grid grid-cols-2 gap-2 mt-3.5">
-                        <div class="bg-white/95 border border-[#cbd7eb] rounded-xl p-2 flex items-center gap-2 shadow-xs">
-                            <div class="w-7 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-xs">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div class="min-w-0 leading-tight">
-                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Safety</span>
-                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">Sealed & Tested</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white/95 border border-[#cbd7eb] rounded-xl p-2 flex items-center gap-2 shadow-xs">
-                            <div class="w-7 h-7 rounded-lg bg-[#eef3fb] text-[#15387C] flex items-center justify-center shrink-0 text-xs">
-                                <i class="fa-solid fa-truck-fast"></i>
-                            </div>
-                            <div class="min-w-0 leading-tight">
-                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Delivery</span>
-                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">Doorstep Express</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Bottom Controls (Quantity + Order Now Button) -->
-                <div class="pt-3 mt-2 border-t border-[#cbd7eb]">
-                    <div class="flex items-center justify-between mb-2.5">
-                        <div class="flex items-baseline gap-1.5">
-                            <span id="domesticPriceDisplay" class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 5,600</span>
-                            <span id="domesticRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold">/ (PKR 560/kg)</span>
-                        </div>
-
-                        <!-- Quantity Selector -->
-                        <div class="flex items-center bg-white rounded-xl border-2 border-[#15387C] p-0.5 shadow-sm">
-                            <button onclick="updateQty('domestic', -1)" class="w-7 h-7 rounded-lg bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Decrease">
-                                <i class="fa-solid fa-minus"></i>
-                            </button>
-                            <span id="qtyDisplayDomestic" class="w-8 text-center font-black text-sm text-[#15387C]">1</span>
-                            <button onclick="updateQty('domestic', 1)" class="w-7 h-7 rounded-lg bg-[#15387C] text-white flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Increase">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Button: Order Now (Opens Form Filling) -->
+                <!-- Action Button: Order Now (Clean 1-Tap) -->
+                <div class="pt-3 mt-3 border-t border-[#cbd7eb]">
                     <button onclick="openBookingModal('domestic')" class="w-full bg-[#15387C] hover:bg-[#0f295b] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition">
                         <span>Order Now</span>
                         <i class="fa-solid fa-arrow-right text-xs text-[#F6AD3A]"></i>
@@ -431,8 +393,8 @@
             <!-- CARD 2: COMMERCIAL CYLINDER 45 KG -->
             <div class="big-lpg-card card-commercial flex-1 p-4 sm:p-5 flex flex-col justify-between shadow-card-gold" id="cardCommercial">
                 <div>
-                    <!-- Title & Weight (Locked 45 Kg) -->
-                    <div class="flex items-baseline justify-between pt-1">
+                    <!-- Title & Net Weight + Price Header -->
+                    <div class="flex items-start justify-between gap-3 pt-0.5">
                         <div>
                             <h2 class="font-display font-black text-2xl sm:text-3xl text-[#F6AD3A] tracking-tight leading-none">
                                 Commercial Cylinder
@@ -442,56 +404,37 @@
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <span class="text-2xl sm:text-3xl font-black text-[#F6AD3A] font-display leading-none">45 Kg</span>
-                            <span class="text-[10px] text-[#64748b] block font-bold uppercase mt-1">Net Weight</span>
+                            <span class="text-xs sm:text-sm font-black text-[#F6AD3A] bg-white border border-[#f8d294] px-2.5 py-0.5 rounded-lg shadow-xs inline-block">
+                                45 Kg Net
+                            </span>
+                            <div class="mt-1">
+                                <span id="commercialPriceDisplay" class="font-display font-black text-lg sm:text-xl text-[#F6AD3A] leading-none block">PKR 25,200</span>
+                                <span id="commercialRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold block mt-0.5">@ PKR 560/kg</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Highlights & Specs -->
-                    <div class="grid grid-cols-2 gap-2 mt-3.5">
-                        <div class="bg-white/95 border border-[#f8d294] rounded-xl p-2 flex items-center gap-2 shadow-xs">
-                            <div class="w-7 h-7 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-xs">
-                                <i class="fa-solid fa-gauge-high"></i>
-                            </div>
-                            <div class="min-w-0 leading-tight">
-                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Pressure</span>
-                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">High Flow Flame</span>
-                            </div>
+                    <!-- Commercial Specification Panel (Balanced height with Domestic Dial) -->
+                    <div class="bg-white border-2 border-[#F6AD3A]/25 rounded-2xl p-3 sm:p-3.5 shadow-sm mt-3 select-none flex flex-col justify-center items-center text-center">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="w-6 h-6 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-xs font-bold border border-[#f8d294]">
+                                <i class="fa-solid fa-industry"></i>
+                            </span>
+                            <span class="text-xs font-black uppercase text-[#F6AD3A] tracking-wider">Heavy Duty Commercial</span>
                         </div>
-
-                        <div class="bg-white/95 border border-[#f8d294] rounded-xl p-2 flex items-center gap-2 shadow-xs">
-                            <div class="w-7 h-7 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center shrink-0 text-xs">
-                                <i class="fa-solid fa-truck-ramp-box"></i>
-                            </div>
-                            <div class="min-w-0 leading-tight">
-                                <span class="text-[9px] text-[#64748b] uppercase font-extrabold tracking-wider block">Bulk Supply</span>
-                                <span class="text-[#0f172a] font-bold text-[11px] leading-tight block">Priority Transport</span>
-                            </div>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                            Locked 45 Kg high-pressure supply with high-flow flame valve for commercial kitchens and bulk users.
+                        </p>
+                        <div class="flex items-center gap-3 mt-2 text-[10.5px] text-slate-500 font-bold">
+                            <span class="flex items-center gap-1 text-slate-600"><i class="fa-solid fa-circle-check text-green-600"></i> Priority Supply</span>
+                            <span>•</span>
+                            <span class="flex items-center gap-1 text-slate-600"><i class="fa-solid fa-gauge-high text-[#F6AD3A]"></i> High-Flow Flame</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bottom Controls (Quantity + Order Now Button) -->
-                <div class="pt-3 mt-2 border-t border-[#f8d294]">
-                    <div class="flex items-center justify-between mb-2.5">
-                        <div class="flex items-baseline gap-1.5">
-                            <span id="commercialPriceDisplay" class="text-base sm:text-lg font-black text-[#F6AD3A] font-display">PKR 25,200</span>
-                            <span id="commercialRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold">/ (PKR 560/kg)</span>
-                        </div>
-
-                        <!-- Quantity Selector -->
-                        <div class="flex items-center bg-white rounded-xl border-2 border-[#F6AD3A] p-0.5 shadow-sm">
-                            <button onclick="updateQty('commercial', -1)" class="w-7 h-7 rounded-lg bg-[#fef7ec] hover:bg-[#fdeed6] text-[#F6AD3A] flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Decrease">
-                                <i class="fa-solid fa-minus"></i>
-                            </button>
-                            <span id="qtyDisplayCommercial" class="w-8 text-center font-black text-sm text-[#15387C]">1</span>
-                            <button onclick="updateQty('commercial', 1)" class="w-7 h-7 rounded-lg bg-[#F6AD3A] hover:bg-[#e09a2b] text-white flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Increase">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Button: Order Now (Opens Form Filling) -->
+                <!-- Action Button: Order Now (Clean 1-Tap) -->
+                <div class="pt-3 mt-3 border-t border-[#f8d294]">
                     <button onclick="openBookingModal('commercial')" class="w-full bg-[#F6AD3A] hover:bg-[#e09a2b] text-[#15387C] font-black text-sm py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition">
                         <span>Order Now</span>
                         <i class="fa-solid fa-arrow-right text-xs text-[#15387C]"></i>
@@ -860,13 +803,13 @@
             if (domEl) domEl.textContent = `PKR ${domUnitPrice.toLocaleString()}`;
 
             const domRateEl = document.getElementById('domesticRatePerKgDisplay');
-            if (domRateEl) domRateEl.textContent = `/ (PKR ${rate.toLocaleString()}/kg)`;
+            if (domRateEl) domRateEl.textContent = `@ PKR ${rate.toLocaleString()}/kg`;
 
             const comEl = document.getElementById('commercialPriceDisplay');
             if (comEl) comEl.textContent = `PKR ${comUnitPrice.toLocaleString()}`;
 
             const comRateEl = document.getElementById('commercialRatePerKgDisplay');
-            if (comRateEl) comRateEl.textContent = `/ (PKR ${rate.toLocaleString()}/kg)`;
+            if (comRateEl) comRateEl.textContent = `@ PKR ${rate.toLocaleString()}/kg`;
 
             // Update modal if currently open
             if (typeof state !== 'undefined' && state && state.selectedType) {
@@ -1273,18 +1216,18 @@
             }
         });
 
-        // Update quantity
+        // Update quantity (guarded for modal or cards)
         function updateQty(type, change) {
             if (type === 'domestic') {
                 state.domesticQty = Math.max(1, state.domesticQty + change);
-                document.getElementById('qtyDisplayDomestic').textContent = state.domesticQty;
+                const el = document.getElementById('qtyDisplayDomestic');
+                if (el) el.textContent = state.domesticQty;
                 refreshCardPrices();
-                showToast(`Domestic (${state.domesticWeight} Kg) Qty: ${state.domesticQty}`);
             } else {
                 state.commercialQty = Math.max(1, state.commercialQty + change);
-                document.getElementById('qtyDisplayCommercial').textContent = state.commercialQty;
+                const el = document.getElementById('qtyDisplayCommercial');
+                if (el) el.textContent = state.commercialQty;
                 refreshCardPrices();
-                showToast(`Commercial 45 Kg Qty: ${state.commercialQty}`);
             }
         }
 
