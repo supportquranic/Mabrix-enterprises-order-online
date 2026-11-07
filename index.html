@@ -411,6 +411,19 @@
                                 <span id="commercialPriceDisplay" class="font-display font-black text-lg sm:text-xl text-[#F6AD3A] leading-none block">PKR 25,200</span>
                                 <span id="commercialRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold block mt-0.5">@ PKR 560/kg</span>
                             </div>
+
+                            <!-- Commercial Quantity Selector Under Price -->
+                            <div class="flex items-center justify-end mt-2">
+                                <div class="flex items-center bg-white rounded-xl border-2 border-[#F6AD3A] p-0.5 shadow-xs">
+                                    <button onclick="updateQty('commercial', -1)" type="button" class="w-6 h-6 rounded-lg bg-[#fef7ec] hover:bg-[#fdeed6] text-[#F6AD3A] flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Decrease">
+                                        <i class="fa-solid fa-minus text-[10px]"></i>
+                                    </button>
+                                    <span id="qtyDisplayCommercial" class="w-7 text-center font-black text-xs text-[#15387C]">1</span>
+                                    <button onclick="updateQty('commercial', 1)" type="button" class="w-6 h-6 rounded-lg bg-[#F6AD3A] hover:bg-[#e09a2b] text-white flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Increase">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -788,10 +801,18 @@
             if (domRateEl) domRateEl.textContent = `@ PKR ${rate.toLocaleString()}/kg`;
 
             const comEl = document.getElementById('commercialPriceDisplay');
-            if (comEl) comEl.textContent = `PKR ${comUnitPrice.toLocaleString()}`;
+            const comQty = (typeof state !== 'undefined' && state.commercialQty) ? state.commercialQty : 1;
+            const comTotal = comQty * comUnitPrice;
+            if (comEl) comEl.textContent = `PKR ${comTotal.toLocaleString()}`;
 
             const comRateEl = document.getElementById('commercialRatePerKgDisplay');
-            if (comRateEl) comRateEl.textContent = `@ PKR ${rate.toLocaleString()}/kg`;
+            if (comRateEl) {
+                if (comQty > 1) {
+                    comRateEl.textContent = `(${comQty}x @ PKR ${comUnitPrice.toLocaleString()})`;
+                } else {
+                    comRateEl.textContent = `@ PKR ${rate.toLocaleString()}/kg`;
+                }
+            }
 
             // Update modal if currently open
             if (typeof state !== 'undefined' && state && state.selectedType) {
