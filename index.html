@@ -94,17 +94,26 @@
             font-family: "Font Awesome 6 Brands" !important;
         }
 
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         .app-wrapper {
             width: 100%;
             max-width: 480px;
             background-color: #ffffff;
             min-height: 100vh;
+            min-height: 100dvh;
             position: relative;
             box-shadow: 0 0 50px rgba(21, 56, 124, 0.1);
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             border-left: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
+            overflow-x: hidden;
         }
 
         @media (min-width: 1024px) {
@@ -184,39 +193,39 @@
     <div class="app-wrapper flex flex-col justify-between">
         
         <!-- TOP STICKY HEADER (WITHOUT LOGO ICON) -->
-        <header class="sticky top-0 z-40 glass-header px-4 pt-3 pb-2.5">
-            <div class="flex items-center justify-between gap-3">
+        <header class="sticky top-0 z-40 glass-header px-3.5 pt-2 pb-1.5 shrink-0">
+            <div class="flex items-center justify-between gap-2.5">
                 <!-- Brand Info (No Logo Icon, Yellow Dot on letter I in MABRIX) -->
                 <div>
-                    <h1 class="font-display font-black text-xl sm:text-2xl text-[#15387C] tracking-tight uppercase leading-none">
+                    <h1 class="font-display font-black text-lg sm:text-2xl text-[#15387C] tracking-tight uppercase leading-none">
                         MABR<span class="relative inline-block">I<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#F6AD3A] rounded-full"></span></span>X ENTERPRISES
                     </h1>
-                    <p class="text-[11.5px] text-[#475569] font-bold flex items-center gap-1.5 mt-1">
-                        <span class="w-2 h-2 rounded-full bg-[#F6AD3A] animate-pulse"></span>
+                    <p class="text-[10.5px] text-[#475569] font-bold flex items-center gap-1.5 mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#F6AD3A] animate-pulse"></span>
                         <span class="text-[#15387C]">LPG Gas Supply & Express Delivery</span>
                     </p>
                 </div>
 
                 <!-- Quick Actions (Call & WhatsApp 0332 4499022) -->
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-1.5 shrink-0">
                     <!-- Call Hotline -->
-                    <a href="tel:03324499022" id="headerCallBtn" title="Call 0332 4499022" class="w-9 h-9 rounded-xl bg-[#eef3fb] hover:bg-[#dce6f7] border border-[#cbd7eb] text-[#15387C] flex items-center justify-center text-sm shadow-sm active:scale-95 transition">
+                    <a href="tel:03324499022" id="headerCallBtn" title="Call 0332 4499022" class="w-8 h-8 rounded-lg bg-[#eef3fb] hover:bg-[#dce6f7] border border-[#cbd7eb] text-[#15387C] flex items-center justify-center text-xs shadow-xs active:scale-95 transition">
                         <i class="fa-solid fa-phone"></i>
                     </a>
                     <!-- Direct WhatsApp -->
-                    <a href="javascript:void(0)" onclick="openWhatsAppDirect('923324499022', 'Hello Mabrix Enterprises, I would like to inquire about LPG cylinder supply.')" id="headerWhatsAppBtn" title="WhatsApp 0332 4499022" class="w-9 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-base shadow-md active:scale-95 transition">
+                    <a href="javascript:void(0)" onclick="openWhatsAppDirect('923324499022', 'Hello Mabrix Enterprises, I would like to inquire about LPG cylinder supply.')" id="headerWhatsAppBtn" title="WhatsApp 0332 4499022" class="w-8 h-8 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center text-sm shadow-xs active:scale-95 transition">
                         <i class="fa-brands fa-whatsapp"></i>
                     </a>
                 </div>
             </div>
 
             <!-- CUSTOM AREA DROPDOWN (BAHRIA TOWN, LAKE CITY, KHYABAN-E-AMIN, WAPDA TOWN, VALENCIA TOWN, NEARBY) -->
-            <div class="relative mt-2.5" id="areaDropdownContainer">
+            <div class="relative mt-1.5" id="areaDropdownContainer">
                 <button 
                     id="areaDropdownBtn" 
                     type="button"
                     onclick="toggleAreaDropdown()" 
-                    class="w-full bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] hover:border-[#15387C] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-bold text-[#15387C] transition shadow-sm"
+                    class="w-full bg-[#f8fafc] hover:bg-[#eef3fb] border border-[#cbd7eb] hover:border-[#15387C] rounded-lg px-2.5 py-1.5 flex items-center justify-between text-xs font-bold text-[#15387C] transition shadow-xs"
                 >
                     <div class="flex items-center gap-2">
                         <span class="bg-[#15387C] text-[#F6AD3A] text-[9.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
@@ -272,58 +281,58 @@
         </header>
 
 
-        <!-- MAIN 2 BIG CARDS (WITHOUT PILLS, BOLD TITLES, UNIFORM BORDERS) -->
-        <main class="px-3.5 py-3 flex flex-col gap-3.5 flex-grow" id="mainCardsContainer">
+        <!-- MAIN 2 BIG CARDS (COMPACT 1-SCREEN VIEW) -->
+        <main class="px-3 py-1.5 flex flex-col gap-2 flex-grow justify-around" id="mainCardsContainer">
             
             <!-- RETURNING REGULAR CUSTOMER 1-CLICK BAR (AUTO-SHOWN IF PROFILE SAVED) -->
-            <div id="quickReorderBar" class="hidden bg-gradient-to-r from-[#15387C] to-[#1e489e] text-white p-3 rounded-2xl shadow-md border border-[#F6AD3A]/30 flex items-center justify-between gap-2.5 transition-all">
-                <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="quickReorderLastItem()">
-                    <div class="w-8 h-8 rounded-xl bg-[#F6AD3A] text-[#15387C] flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+            <div id="quickReorderBar" class="hidden bg-gradient-to-r from-[#15387C] to-[#1e489e] text-white p-2.5 rounded-xl shadow-md border border-[#F6AD3A]/30 flex items-center justify-between gap-2 transition-all">
+                <div class="flex items-center gap-2 min-w-0 cursor-pointer" onclick="quickReorderLastItem()">
+                    <div class="w-7 h-7 rounded-lg bg-[#F6AD3A] text-[#15387C] flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                         <i class="fa-solid fa-bolt"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1">
                             <span class="text-xs font-black truncate text-white">Welcome back, <span id="quickCustomerName" class="text-[#F6AD3A]">Customer</span>! 👋</span>
                         </div>
-                        <p class="text-[10px] text-slate-200 truncate" id="quickCustomerAddress">Saved delivery address ready</p>
+                        <p class="text-[9.5px] text-slate-200 truncate" id="quickCustomerAddress">Saved delivery address ready</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <button onclick="quickReorderLastItem()" class="bg-[#F6AD3A] hover:bg-[#e59d2a] active:scale-95 text-[#15387C] font-black text-xs py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 transition">
-                        <span>1-Tap Order</span>
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button onclick="quickReorderLastItem()" class="bg-[#F6AD3A] hover:bg-[#e59d2a] active:scale-95 text-[#15387C] font-black text-[11px] py-1.5 px-2.5 rounded-lg shadow-xs flex items-center gap-1 transition">
+                        <span>1-Tap</span>
+                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
                     </button>
-                    <button onclick="dismissQuickReorderBar(event)" type="button" class="w-6 h-6 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 active:scale-90 flex items-center justify-center transition" title="Dismiss banner">
-                        <i class="fa-solid fa-xmark text-xs"></i>
+                    <button onclick="dismissQuickReorderBar(event)" type="button" class="w-5 h-5 rounded-md text-slate-300 hover:text-white hover:bg-white/10 active:scale-90 flex items-center justify-center transition" title="Dismiss">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
                     </button>
                 </div>
             </div>
 
             <!-- CARD 1: DOMESTIC CYLINDER 10 KG -->
-            <div class="big-lpg-card card-domestic p-4 sm:p-5 flex flex-col shadow-card-blue" id="cardDomestic">
+            <div class="big-lpg-card card-domestic p-3 sm:p-4 flex flex-col shadow-card-blue rounded-2xl" id="cardDomestic">
                 <div>
                     <!-- Title & Net Weight + Price Header -->
-                    <div class="flex items-start justify-between gap-3 pt-0.5">
+                    <div class="flex items-start justify-between gap-2">
                         <div>
-                            <h2 class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight leading-none">
+                            <h2 class="font-display font-black text-xl sm:text-2xl text-[#15387C] tracking-tight leading-none">
                                 Domestic Cylinder
                             </h2>
-                            <p class="text-[12px] text-[#475569] font-medium mt-1.5">
+                            <p class="text-[11px] text-[#475569] font-medium mt-1">
                                 Ideal for Homes, Kitchens, Heaters & Domestic Stoves
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <span id="headerWeightBadge" class="text-xs sm:text-sm font-black text-[#15387C] bg-white border border-[#cbd7eb] px-2.5 py-0.5 rounded-lg shadow-xs inline-block">
+                            <span id="headerWeightBadge" class="text-xs font-black text-[#15387C] bg-white border border-[#cbd7eb] px-2 py-0.5 rounded-md shadow-xs inline-block">
                                 10 Kg Net
                             </span>
-                            <div class="mt-1">
-                                <span id="domesticPriceDisplay" class="font-display font-black text-lg sm:text-xl text-[#15387C] leading-none block">PKR 5,600</span>
+                            <div class="mt-0.5">
+                                <span id="domesticPriceDisplay" class="font-display font-black text-base sm:text-lg text-[#15387C] leading-none block">PKR 5,600</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- REFERENCE WEIGHT SELECTOR GAUGE (1 - 45 KG, SCROLL LEFT / RIGHT) -->
-                    <div class="bg-white border-2 border-[#15387C]/20 hover:border-[#15387C] rounded-2xl p-2.5 sm:p-3 shadow-sm transition-all duration-200 mt-3 relative select-none">
+                    <div class="bg-white border-2 border-[#15387C]/20 hover:border-[#15387C] rounded-xl p-2 shadow-xs transition-all duration-200 mt-2 relative select-none">
                         <!-- Top Readout Row: Previous Number, Big Selected Center Weight, Next Number -->
                         <div class="flex items-center justify-between px-1 mb-0.5">
                             <!-- Previous Number on Left -->
@@ -331,21 +340,21 @@
                                 id="dialPrevBtn" 
                                 type="button" 
                                 onclick="stepDomesticWeight(-1)" 
-                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1 px-2 rounded-xl transition active:scale-90"
+                                class="flex items-center gap-1 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-0.5 px-1.5 rounded-lg transition active:scale-90"
                                 title="Previous weight"
                             >
-                                <i class="fa-solid fa-chevron-left text-[10px]"></i>
-                                <span id="dialPrevNum" class="text-sm font-black">9</span>
-                                <span class="text-[9px] text-slate-400 font-bold uppercase">kg</span>
+                                <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                                <span id="dialPrevNum" class="text-xs font-black">9</span>
+                                <span class="text-[8px] text-slate-400 font-bold uppercase">kg</span>
                             </button>
 
-                            <!-- Big Center Real Actual Selected Weight with Elastic Spring -->
+                            <!-- Big Center Real Actual Selected Weight -->
                             <div class="text-center cursor-default">
                                 <div class="flex items-baseline justify-center gap-1 leading-none">
-                                    <span id="domesticWeightDisplay" class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight inline-block transition-transform duration-150 ease-out">10</span>
-                                    <span class="font-black text-sm text-[#15387C] uppercase">Kg</span>
+                                    <span id="domesticWeightDisplay" class="font-display font-black text-xl sm:text-2xl text-[#15387C] tracking-tight inline-block">10</span>
+                                    <span class="font-black text-xs text-[#15387C] uppercase">Kg</span>
                                 </div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">Scroll Left / Right (1 - 45 Kg)</span>
+                                <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">Scroll Left / Right (1 - 45 Kg)</span>
                             </div>
 
                             <!-- Next Number on Right -->
@@ -353,19 +362,19 @@
                                 id="dialNextBtn" 
                                 type="button" 
                                 onclick="stepDomesticWeight(1)" 
-                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1 px-2 rounded-xl transition active:scale-90"
+                                class="flex items-center gap-1 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-0.5 px-1.5 rounded-lg transition active:scale-90"
                                 title="Next weight"
                             >
-                                <span id="dialNextNum" class="text-sm font-black">11</span>
-                                <span class="text-[9px] text-slate-400 font-bold uppercase">kg</span>
-                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                <span id="dialNextNum" class="text-xs font-black">11</span>
+                                <span class="text-[8px] text-slate-400 font-bold uppercase">kg</span>
+                                <i class="fa-solid fa-chevron-right text-[9px]"></i>
                             </button>
                         </div>
 
-                        <!-- Pointer Indicator Needle (Elastic Spring Pointer) -->
-                        <div id="dialNeedleContainer" class="relative w-full flex flex-col items-center pointer-events-none z-20 -mb-0.5 transition-transform duration-150 ease-out">
-                            <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#15387C] drop-shadow-sm"></div>
-                            <div class="w-[2.5px] h-3 bg-[#15387C] rounded-full"></div>
+                        <!-- Pointer Indicator Needle -->
+                        <div id="dialNeedleContainer" class="relative w-full flex flex-col items-center pointer-events-none z-20 -mb-0.5">
+                            <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-[#15387C] drop-shadow-xs"></div>
+                            <div class="w-[2px] h-2 bg-[#15387C] rounded-full"></div>
                         </div>
 
                         <!-- Hidden Apple Native Taptic Engine Hook (iOS Safari 17.4+ / iOS 18+) -->
@@ -378,7 +387,7 @@
                         <div id="dialElasticWrapper" class="relative w-full overflow-hidden" style="mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);">
                             <div 
                                 id="dialRulerTrack" 
-                                class="dial-ruler-track flex overflow-x-auto no-scrollbar py-1.5"
+                                class="dial-ruler-track flex overflow-x-auto no-scrollbar py-0.5"
                                 style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; cursor: grab;"
                             >
                                 <!-- Injected dynamically by JS: 45 ticks from 1 to 45 with padding -->
@@ -388,44 +397,44 @@
                 </div>
 
                 <!-- Action Button: Order Now (Clean 1-Tap) -->
-                <div class="pt-3 mt-3 border-t border-[#cbd7eb]">
-                    <button onclick="openBookingModal('domestic')" class="w-full bg-[#15387C] hover:bg-[#0f295b] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition">
+                <div class="pt-2 mt-2 border-t border-[#cbd7eb]">
+                    <button onclick="openBookingModal('domestic')" class="w-full bg-[#15387C] hover:bg-[#0f295b] text-white font-black text-xs sm:text-sm py-2.5 px-3 rounded-xl shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition">
                         <span>Order Now</span>
-                        <i class="fa-solid fa-arrow-right text-xs text-[#F6AD3A]"></i>
+                        <i class="fa-solid fa-arrow-right text-[11px] text-[#F6AD3A]"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- CARD 2: COMMERCIAL CYLINDER 45 KG -->
-            <div class="big-lpg-card card-commercial p-4 sm:p-5 flex flex-col shadow-card-gold" id="cardCommercial">
+            <!-- CARD 2: COMMERCIAL CYLINDER 45 KG (COMPACT) -->
+            <div class="big-lpg-card card-commercial p-3 sm:p-4 flex flex-col shadow-card-gold rounded-2xl" id="cardCommercial">
                 <div>
                     <!-- Title & Net Weight + Price Header -->
-                    <div class="flex items-start justify-between gap-3 pt-0.5">
+                    <div class="flex items-start justify-between gap-2">
                         <div>
-                            <h2 class="font-display font-black text-2xl sm:text-3xl text-[#F6AD3A] tracking-tight leading-none">
+                            <h2 class="font-display font-black text-xl sm:text-2xl text-[#F6AD3A] tracking-tight leading-none">
                                 Commercial Cylinder
                             </h2>
-                            <p class="text-[12px] text-[#475569] font-medium mt-1.5">
+                            <p class="text-[11px] text-[#475569] font-medium mt-1">
                                 High Output for Restaurants, Hotels, Cafes & Industrial Units
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <span class="text-xs sm:text-sm font-black text-[#F6AD3A] bg-white border border-[#f8d294] px-2.5 py-0.5 rounded-lg shadow-xs inline-block">
+                            <span class="text-xs font-black text-[#F6AD3A] bg-white border border-[#f8d294] px-2 py-0.5 rounded-md shadow-xs inline-block">
                                 45 Kg Net
                             </span>
-                            <div class="mt-1">
-                                <span id="commercialPriceDisplay" class="font-display font-black text-lg sm:text-xl text-[#F6AD3A] leading-none block">PKR 25,200</span>
+                            <div class="mt-0.5">
+                                <span id="commercialPriceDisplay" class="font-display font-black text-base sm:text-lg text-[#F6AD3A] leading-none block">PKR 25,200</span>
                             </div>
 
                             <!-- Commercial Quantity Selector Under Price -->
-                            <div class="flex items-center justify-end mt-2">
-                                <div class="flex items-center bg-white rounded-xl border-2 border-[#F6AD3A] p-0.5 shadow-xs">
-                                    <button onclick="updateQty('commercial', -1)" type="button" class="w-6 h-6 rounded-lg bg-[#fef7ec] hover:bg-[#fdeed6] text-[#F6AD3A] flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Decrease">
-                                        <i class="fa-solid fa-minus text-[10px]"></i>
+                            <div class="flex items-center justify-end mt-1.5">
+                                <div class="flex items-center bg-white rounded-lg border-2 border-[#F6AD3A] p-0.5 shadow-xs">
+                                    <button onclick="updateQty('commercial', -1)" type="button" class="w-5 h-5 rounded bg-[#fef7ec] hover:bg-[#fdeed6] text-[#F6AD3A] flex items-center justify-center text-[10px] font-bold active:scale-95 transition" title="Decrease">
+                                        <i class="fa-solid fa-minus text-[9px]"></i>
                                     </button>
-                                    <span id="qtyDisplayCommercial" class="w-7 text-center font-black text-xs text-[#15387C]">1</span>
-                                    <button onclick="updateQty('commercial', 1)" type="button" class="w-6 h-6 rounded-lg bg-[#F6AD3A] hover:bg-[#e09a2b] text-white flex items-center justify-center text-xs font-bold active:scale-95 transition" title="Increase">
-                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                    <span id="qtyDisplayCommercial" class="w-6 text-center font-black text-xs text-[#15387C]">1</span>
+                                    <button onclick="updateQty('commercial', 1)" type="button" class="w-5 h-5 rounded bg-[#F6AD3A] hover:bg-[#e09a2b] text-white flex items-center justify-center text-[10px] font-bold active:scale-95 transition" title="Increase">
+                                        <i class="fa-solid fa-plus text-[9px]"></i>
                                     </button>
                                 </div>
                             </div>
@@ -434,26 +443,26 @@
                 </div>
 
                 <!-- Action Button: Order Now (Compact & Direct) -->
-                <div class="pt-3 mt-3 border-t border-[#f8d294]">
-                    <button onclick="openBookingModal('commercial')" class="w-full bg-[#F6AD3A] hover:bg-[#e09a2b] text-[#15387C] font-black text-sm py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition">
+                <div class="pt-2 mt-2 border-t border-[#f8d294]">
+                    <button onclick="openBookingModal('commercial')" class="w-full bg-[#F6AD3A] hover:bg-[#e09a2b] text-[#15387C] font-black text-xs sm:text-sm py-2.5 px-3 rounded-xl shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition">
                         <span>Order Now</span>
-                        <i class="fa-solid fa-arrow-right text-xs text-[#15387C]"></i>
+                        <i class="fa-solid fa-arrow-right text-[11px] text-[#15387C]"></i>
                     </button>
                 </div>
             </div>
 
         </main>
 
-        <!-- FOOTER WITH DESIGNED BY TALHA MUZAMMIL (WITH WHATSAPP 03294355677) -->
-        <footer class="px-4 py-3.5 bg-[#ffffff] border-t border-[#e2e8f0] text-center text-xs">
+        <!-- FOOTER WITH DESIGNED BY TALHA MUZAMMIL (WITH WHATSAPP 03294355677 - MOVED UP INSIDE SCREEN) -->
+        <footer class="px-3 py-1.5 bg-[#ffffff] border-t border-[#e2e8f0] text-center text-xs shrink-0">
             <!-- Designed by Talha Muzammil with WhatsApp button -->
-            <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
+            <div class="flex items-center justify-center gap-1.5 text-[10.5px] text-slate-500 font-medium">
                 <span>Designed by</span>
                 <a 
                     href="javascript:void(0)" 
                     onclick="openWhatsAppDirect('923294355677', 'Hello Talha, I am contacting you regarding your web design services.')" 
                     title="Chat with Talha Muzammil on WhatsApp (03294355677)"
-                    class="inline-flex items-center gap-1.5 bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] font-black px-2.5 py-0.5 rounded-md border border-[#cbd7eb] shadow-sm active:scale-95 transition"
+                    class="inline-flex items-center gap-1 bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] font-black px-2 py-0.5 rounded-md border border-[#cbd7eb] shadow-xs active:scale-95 transition"
                 >
                     <i class="fa-brands fa-whatsapp text-[#25D366] text-xs"></i>
                     <span>Talha Muzammil</span>
@@ -1020,13 +1029,13 @@
                     <div class="dial-tick-item flex flex-col items-center justify-end shrink-0 cursor-pointer select-none" 
                          data-kg="${kg}" 
                          onclick="selectDialWeight(${kg})"
-                         style="flex: 0 0 ${DIAL_ITEM_WIDTH}px; width: ${DIAL_ITEM_WIDTH}px; scroll-snap-align: center; height: 50px;">
+                         style="flex: 0 0 ${DIAL_ITEM_WIDTH}px; width: ${DIAL_ITEM_WIDTH}px; scroll-snap-align: center; height: 36px;">
                         <div class="tick-line rounded-full transition-all duration-150" 
                              id="tickLine-${kg}"
-                             style="width: ${isMajor ? '2.5px' : '1.5px'}; height: ${isMajor ? '20px' : '12px'}; background-color: #cbd5e1;"></div>
-                        <span class="tick-label font-bold mt-1.5 transition-all select-none leading-none" 
+                             style="width: ${isMajor ? '2px' : '1.5px'}; height: ${isMajor ? '15px' : '9px'}; background-color: #cbd5e1;"></div>
+                        <span class="tick-label font-bold mt-1 transition-all select-none leading-none" 
                               id="tickLabel-${kg}"
-                              style="color: ${isMajor ? '#64748b' : 'transparent'}; font-size: ${isMajor ? '10.5px' : '8px'};">
+                              style="color: ${isMajor ? '#64748b' : 'transparent'}; font-size: ${isMajor ? '9.5px' : '7.5px'};">
                             ${isMajor ? kg : ''}
                         </span>
                     </div>
