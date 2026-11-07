@@ -413,24 +413,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Commercial Specification Panel (Balanced height with Domestic Dial) -->
-                    <div class="bg-white border-2 border-[#F6AD3A]/25 rounded-2xl p-3 sm:p-3.5 shadow-sm mt-3 select-none flex flex-col justify-center items-center text-center">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="w-6 h-6 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-xs font-bold border border-[#f8d294]">
-                                <i class="fa-solid fa-industry"></i>
-                            </span>
-                            <span class="text-xs font-black uppercase text-[#F6AD3A] tracking-wider">Heavy Duty Commercial</span>
-                        </div>
-                        <p class="text-xs text-slate-600 font-medium leading-relaxed">
-                            Locked 45 Kg high-pressure supply with high-flow flame valve for commercial kitchens and bulk users.
-                        </p>
-                        <div class="flex items-center gap-3 mt-2 text-[10.5px] text-slate-500 font-bold">
-                            <span class="flex items-center gap-1 text-slate-600"><i class="fa-solid fa-circle-check text-green-600"></i> Priority Supply</span>
-                            <span>•</span>
-                            <span class="flex items-center gap-1 text-slate-600"><i class="fa-solid fa-gauge-high text-[#F6AD3A]"></i> High-Flow Flame</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Action Button: Order Now (Clean 1-Tap) -->
@@ -1038,12 +1020,54 @@
 
             dialIsInitialized = true;
 
-            // Set initial default (10 Kg)
-            const initialKg = state.domesticWeight || 10;
+            // Auto-start from 1 kg and glide fast and smooth to 10 kg on reload
+            const targetKg = state.domesticWeight || 10;
             setTimeout(() => {
-                scrollDialToWeight(initialKg, false);
-                updateDialUI(initialKg);
-            }, 60);
+                animateDialFrom1To(targetKg, 520);
+            }, 100);
+        }
+
+        // Fast & smooth 1kg to target animation on reload
+        function animateDialFrom1To(targetKg = 10, duration = 520) {
+            const track = document.getElementById('dialRulerTrack');
+            if (!track) return;
+
+            updateDialPadding();
+            track.style.scrollSnapType = 'none'; // disable snap during auto glide
+            track.scrollLeft = 0; // Start at 1 kg
+            state.domesticWeight = 1;
+            updateDialUI(1);
+            refreshCardPrices();
+
+            const startScroll = 0;
+            const targetScroll = (targetKg - 1) * DIAL_ITEM_WIDTH;
+            const startTime = performance.now();
+
+            function step(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease-out cubic for crisp, snappy deceleration into 10 kg
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const currentScroll = startScroll + (targetScroll - startScroll) * ease;
+                track.scrollLeft = currentScroll;
+
+                const liveKg = getKgFromScroll(currentScroll);
+                state.domesticWeight = liveKg;
+                updateDialUI(liveKg);
+                refreshCardPrices();
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    track.scrollLeft = targetScroll;
+                    track.style.scrollSnapType = 'x mandatory'; // re-enable snap
+                    state.domesticWeight = targetKg;
+                    updateDialUI(targetKg);
+                    refreshCardPrices();
+                }
+            }
+
+            requestAnimationFrame(step);
         }
 
         function updateDialPadding() {
