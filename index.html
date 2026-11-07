@@ -301,7 +301,7 @@
             <!-- CARD 1: DOMESTIC CYLINDER 10 KG -->
             <div class="big-lpg-card card-domestic flex-1 p-4 sm:p-5 flex flex-col justify-between shadow-card-blue" id="cardDomestic">
                 <div>
-                    <!-- Title & Weight (Adjustable 1-45 Kg) -->
+                    <!-- Title & Badge -->
                     <div class="flex items-baseline justify-between pt-1">
                         <div>
                             <h2 class="font-display font-black text-2xl sm:text-3xl text-[#15387C] tracking-tight leading-none">
@@ -312,16 +312,67 @@
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="flex items-center gap-1.5 justify-end">
-                                <button onclick="updateDomesticWeight(-1)" type="button" class="w-7 h-7 rounded-lg bg-[#eef3fb] hover:bg-[#dce6f7] text-[#15387C] flex items-center justify-center text-xs font-black active:scale-90 transition border border-[#cbd7eb]" title="Decrease Weight (min 1 kg)">
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </button>
-                                <span id="domesticWeightDisplay" class="text-2xl sm:text-3xl font-black text-[#15387C] font-display leading-none min-w-[70px] text-center">1 Kg</span>
-                                <button onclick="updateDomesticWeight(1)" type="button" class="w-7 h-7 rounded-lg bg-[#15387C] hover:bg-[#0f295b] text-white flex items-center justify-center text-xs font-black active:scale-90 transition shadow-sm" title="Increase Weight (max 45 kg)">
-                                    <i class="fa-solid fa-chevron-up"></i>
-                                </button>
+                            <span id="headerWeightBadge" class="text-xs font-black text-[#15387C] bg-white border border-[#cbd7eb] px-2.5 py-1 rounded-lg shadow-xs block">
+                                10 Kg Net
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- REFERENCE WEIGHT SELECTOR GAUGE (1 - 45 KG, SCROLL LEFT / RIGHT) -->
+                    <div class="bg-white border-2 border-[#15387C]/20 hover:border-[#15387C] rounded-2xl p-3 sm:p-3.5 shadow-sm transition-all duration-200 mt-3 relative select-none">
+                        <!-- Top Readout Row: Previous Number, Big Selected Center Weight, Next Number -->
+                        <div class="flex items-center justify-between px-1 mb-1">
+                            <!-- Previous Number on Left -->
+                            <button 
+                                id="dialPrevBtn" 
+                                type="button" 
+                                onclick="stepDomesticWeight(-1)" 
+                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1.5 px-2.5 rounded-xl transition active:scale-90"
+                                title="Previous weight"
+                            >
+                                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                                <span id="dialPrevNum" class="text-sm font-black">9</span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase">kg</span>
+                            </button>
+
+                            <!-- Big Center Real Actual Selected Weight -->
+                            <div class="text-center cursor-default">
+                                <div class="flex items-baseline justify-center gap-1 leading-none">
+                                    <span id="domesticWeightDisplay" class="font-display font-black text-3xl sm:text-4xl text-[#15387C] tracking-tight">10</span>
+                                    <span class="font-black text-base text-[#15387C] uppercase">Kg</span>
+                                </div>
+                                <span class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Scroll Left / Right (1 - 45 Kg)</span>
                             </div>
-                            <span class="text-[10px] text-[#64748b] block font-bold uppercase mt-1">Net Weight (1-45 Kg)</span>
+
+                            <!-- Next Number on Right -->
+                            <button 
+                                id="dialNextBtn" 
+                                type="button" 
+                                onclick="stepDomesticWeight(1)" 
+                                class="flex items-center gap-1.5 text-slate-400 hover:text-[#15387C] hover:bg-[#eef3fb] font-extrabold text-xs py-1.5 px-2.5 rounded-xl transition active:scale-90"
+                                title="Next weight"
+                            >
+                                <span id="dialNextNum" class="text-sm font-black">11</span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase">kg</span>
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </button>
+                        </div>
+
+                        <!-- Pointer Indicator Needle (Reference Style) -->
+                        <div class="relative w-full flex flex-col items-center pointer-events-none z-20 -mb-0.5">
+                            <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#15387C] drop-shadow-sm"></div>
+                            <div class="w-[2.5px] h-3.5 bg-[#15387C] rounded-full"></div>
+                        </div>
+
+                        <!-- Horizontal Scrollable Ruler / Dial Track with Edge Fade Gradients -->
+                        <div class="relative w-full overflow-hidden" style="mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);">
+                            <div 
+                                id="dialRulerTrack" 
+                                class="dial-ruler-track flex overflow-x-auto no-scrollbar py-2"
+                                style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; cursor: grab;"
+                            >
+                                <!-- Injected dynamically by JS: 45 ticks from 1 to 45 with padding -->
+                            </div>
                         </div>
                     </div>
 
@@ -353,7 +404,7 @@
                 <div class="pt-3 mt-2 border-t border-[#cbd7eb]">
                     <div class="flex items-center justify-between mb-2.5">
                         <div class="flex items-baseline gap-1.5">
-                            <span id="domesticPriceDisplay" class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 560</span>
+                            <span id="domesticPriceDisplay" class="text-base sm:text-lg font-black text-[#15387C] font-display">PKR 5,600</span>
                             <span id="domesticRatePerKgDisplay" class="text-[10px] text-slate-500 font-bold">/ (PKR 560/kg)</span>
                         </div>
 
@@ -498,7 +549,7 @@
             <div class="bg-[#f8fafc] border border-[#cbd7eb] rounded-2xl p-3.5 mb-4 text-xs space-y-2">
                 <div class="flex items-center justify-between text-slate-500 text-[11px]">
                     <span class="font-bold uppercase tracking-wider">Previous Cylinder:</span>
-                    <span id="popupLastCylinder" class="font-black text-[#15387C] bg-white px-2.5 py-0.5 rounded-lg border border-[#cbd7eb]">Domestic 1 Kg</span>
+                    <span id="popupLastCylinder" class="font-black text-[#15387C] bg-white px-2.5 py-0.5 rounded-lg border border-[#cbd7eb]">Domestic 10 Kg</span>
                 </div>
                 <div class="flex items-start gap-2 pt-1.5 border-t border-slate-200 text-slate-700">
                     <i class="fa-solid fa-location-dot text-[#F6AD3A] mt-0.5 text-xs shrink-0"></i>
@@ -545,7 +596,7 @@
                 <div class="bg-[#eef3fb] rounded-2xl p-3 border border-[#cbd7eb] flex items-center justify-between">
                     <div>
                         <span class="text-[10px] text-[#64748b] uppercase font-bold block">Selected Cylinder</span>
-                        <span class="text-[#15387C] font-extrabold text-sm" id="modalSelectedName">Domestic Cylinder (1 Kg)</span>
+                        <span class="text-[#15387C] font-extrabold text-sm" id="modalSelectedName">Domestic Cylinder (10 Kg)</span>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] text-[#64748b] uppercase font-bold block">Quantity</span>
@@ -792,7 +843,7 @@
 
         function getDomesticUnitPrice() {
             const rate = RATES.perKg || 560;
-            return (state.domesticWeight || 1) * rate;
+            return (state.domesticWeight || 10) * rate;
         }
 
         function getCommercialUnitPrice() {
@@ -822,7 +873,7 @@
                 const isDom = (state.selectedType === 'domestic');
                 const qty = isDom ? state.domesticQty : state.commercialQty;
                 const unitPrice = isDom ? domUnitPrice : comUnitPrice;
-                const weight = isDom ? (state.domesticWeight || 1) : 45;
+                const weight = isDom ? (state.domesticWeight || 10) : 45;
                 const itemName = isDom ? `Domestic Cylinder (${weight} Kg)` : `Commercial Cylinder (45 Kg)`;
                 const total = qty * unitPrice;
 
@@ -919,6 +970,7 @@
             loadLiveRates();
             setInterval(loadLiveRates, 6000);
             checkReturningCustomer();
+            initDomesticWeightDial();
 
             // Real-time phone lookup: auto-fills returning customer details on ANY new device or browser
             const phoneInput = document.getElementById('custPhone');
@@ -936,18 +988,237 @@
         const state = {
             domesticQty: 1,
             commercialQty: 1,
-            domesticWeight: 1,
+            domesticWeight: 10,
             commercialWeight: 45,
             selectedType: 'domestic',
             selectedArea: 'Bahria Town'
         };
 
-        function updateDomesticWeight(delta) {
-            state.domesticWeight = Math.max(1, Math.min(45, (state.domesticWeight || 1) + delta));
-            const weightDisplay = document.getElementById('domesticWeightDisplay');
-            if (weightDisplay) weightDisplay.textContent = `${state.domesticWeight} Kg`;
+        // ==========================================
+        // REFERENCE WEIGHT SELECTOR DIAL CONTROLLER (1 - 45 KG)
+        // ==========================================
+        const DIAL_ITEM_WIDTH = 44; // px per tick column
+        const MIN_KG = 1;
+        const MAX_KG = 45;
+        let dialIsInitialized = false;
+
+        function initDomesticWeightDial() {
+            const track = document.getElementById('dialRulerTrack');
+            if (!track) return;
+
+            let html = '';
+            for (let kg = MIN_KG; kg <= MAX_KG; kg++) {
+                const isMajor = (kg === 1 || kg % 5 === 0);
+                html += `
+                    <div class="dial-tick-item flex flex-col items-center justify-end shrink-0 cursor-pointer select-none" 
+                         data-kg="${kg}" 
+                         onclick="selectDialWeight(${kg})"
+                         style="flex: 0 0 ${DIAL_ITEM_WIDTH}px; width: ${DIAL_ITEM_WIDTH}px; scroll-snap-align: center; height: 50px;">
+                        <div class="tick-line rounded-full transition-all duration-150" 
+                             id="tickLine-${kg}"
+                             style="width: ${isMajor ? '2.5px' : '1.5px'}; height: ${isMajor ? '20px' : '12px'}; background-color: #cbd5e1;"></div>
+                        <span class="tick-label font-bold mt-1.5 transition-all select-none leading-none" 
+                              id="tickLabel-${kg}"
+                              style="color: ${isMajor ? '#64748b' : 'transparent'}; font-size: ${isMajor ? '10.5px' : '8px'};">
+                            ${isMajor ? kg : ''}
+                        </span>
+                    </div>
+                `;
+            }
+            track.innerHTML = html;
+
+            updateDialPadding();
+
+            // Scroll listener with requestAnimationFrame debouncing
+            let scrollTicking = false;
+            track.addEventListener('scroll', () => {
+                if (!scrollTicking) {
+                    requestAnimationFrame(() => {
+                        const currentKg = getKgFromScroll(track.scrollLeft);
+                        if (currentKg !== state.domesticWeight) {
+                            state.domesticWeight = currentKg;
+                            updateDialUI(currentKg);
+                            refreshCardPrices();
+                        }
+                        scrollTicking = false;
+                    });
+                    scrollTicking = true;
+                }
+            }, { passive: true });
+
+            // Desktop mouse drag support
+            let isDown = false;
+            let startX;
+            let scrollStart;
+
+            track.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - track.offsetLeft;
+                scrollStart = track.scrollLeft;
+                track.style.cursor = 'grabbing';
+                track.style.scrollSnapType = 'none';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - track.offsetLeft;
+                const walk = (x - startX) * 1.3;
+                track.scrollLeft = scrollStart - walk;
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (!isDown) return;
+                isDown = false;
+                track.style.cursor = 'grab';
+                track.style.scrollSnapType = 'x mandatory';
+                const currentKg = getKgFromScroll(track.scrollLeft);
+                scrollDialToWeight(currentKg, true);
+            });
+
+            // Smooth mouse wheel support
+            track.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                track.scrollLeft += delta;
+                clearTimeout(track._wheelSnapTimer);
+                track._wheelSnapTimer = setTimeout(() => {
+                    const currentKg = getKgFromScroll(track.scrollLeft);
+                    scrollDialToWeight(currentKg, true);
+                }, 120);
+            }, { passive: false });
+
+            window.addEventListener('resize', () => {
+                updateDialPadding();
+                scrollDialToWeight(state.domesticWeight || 10, false);
+            });
+
+            dialIsInitialized = true;
+
+            // Set initial default (10 Kg)
+            const initialKg = state.domesticWeight || 10;
+            setTimeout(() => {
+                scrollDialToWeight(initialKg, false);
+                updateDialUI(initialKg);
+            }, 60);
+        }
+
+        function updateDialPadding() {
+            const track = document.getElementById('dialRulerTrack');
+            if (!track) return;
+            const pad = Math.max(0, Math.floor((track.clientWidth - DIAL_ITEM_WIDTH) / 2));
+            track.style.paddingLeft = pad + 'px';
+            track.style.paddingRight = pad + 'px';
+        }
+
+        function getKgFromScroll(sl) {
+            const kg = Math.round(sl / DIAL_ITEM_WIDTH) + 1;
+            return Math.max(MIN_KG, Math.min(MAX_KG, kg));
+        }
+
+        function scrollDialToWeight(kg, smooth = true) {
+            const track = document.getElementById('dialRulerTrack');
+            if (!track) return;
+            updateDialPadding();
+            const targetScroll = (kg - 1) * DIAL_ITEM_WIDTH;
+            track.scrollTo({
+                left: targetScroll,
+                behavior: smooth ? 'smooth' : 'auto'
+            });
+        }
+
+        function selectDialWeight(kg) {
+            const target = Math.max(MIN_KG, Math.min(MAX_KG, kg));
+            state.domesticWeight = target;
+            scrollDialToWeight(target, true);
+            updateDialUI(target);
             refreshCardPrices();
-            showToast(`Domestic Weight: ${state.domesticWeight} Kg`);
+            showToast(`Domestic Weight: ${target} Kg`);
+        }
+
+        function stepDomesticWeight(delta) {
+            const next = Math.max(MIN_KG, Math.min(MAX_KG, (state.domesticWeight || 10) + delta));
+            selectDialWeight(next);
+        }
+
+        const updateDomesticWeight = stepDomesticWeight;
+
+        function updateDialUI(currentKg) {
+            // 1. Big Center Weight
+            const mainDisplay = document.getElementById('domesticWeightDisplay');
+            if (mainDisplay) mainDisplay.textContent = currentKg;
+
+            // 2. Header Badge
+            const headerBadge = document.getElementById('headerWeightBadge');
+            if (headerBadge) headerBadge.textContent = `${currentKg} Kg Net`;
+
+            // 3. Previous Number Button
+            const prevBtn = document.getElementById('dialPrevBtn');
+            const prevNum = document.getElementById('dialPrevNum');
+            if (prevBtn && prevNum) {
+                if (currentKg > MIN_KG) {
+                    prevBtn.style.visibility = 'visible';
+                    prevBtn.style.opacity = '1';
+                    prevNum.textContent = currentKg - 1;
+                } else {
+                    prevBtn.style.visibility = 'hidden';
+                    prevBtn.style.opacity = '0';
+                }
+            }
+
+            // 4. Next Number Button
+            const nextBtn = document.getElementById('dialNextBtn');
+            const nextNum = document.getElementById('dialNextNum');
+            if (nextBtn && nextNum) {
+                if (currentKg < MAX_KG) {
+                    nextBtn.style.visibility = 'visible';
+                    nextBtn.style.opacity = '1';
+                    nextNum.textContent = currentKg + 1;
+                } else {
+                    nextBtn.style.visibility = 'hidden';
+                    nextBtn.style.opacity = '0';
+                }
+            }
+
+            // 5. Update Tick Marks Colors (Reference Inspired: Active vibrant blue on selected progress)
+            for (let kg = MIN_KG; kg <= MAX_KG; kg++) {
+                const line = document.getElementById(`tickLine-${kg}`);
+                const label = document.getElementById(`tickLabel-${kg}`);
+                if (!line) continue;
+                const isMajor = (kg === 1 || kg % 5 === 0);
+
+                if (kg === currentKg) {
+                    // Active Needle Selected Value
+                    line.style.backgroundColor = '#15387C';
+                    line.style.height = '24px';
+                    line.style.width = '3.5px';
+                    if (label) {
+                        label.style.color = '#15387C';
+                        label.style.fontWeight = '900';
+                        label.style.transform = 'scale(1.2)';
+                    }
+                } else if (kg < currentKg) {
+                    // Progress filled side (Reference image blue arc style)
+                    line.style.backgroundColor = '#2563EB';
+                    line.style.height = isMajor ? '20px' : '13px';
+                    line.style.width = isMajor ? '2.5px' : '1.5px';
+                    if (label) {
+                        label.style.color = '#2563EB';
+                        label.style.fontWeight = '700';
+                        label.style.transform = 'scale(1)';
+                    }
+                } else {
+                    // Inactive side (neutral slate)
+                    line.style.backgroundColor = '#cbd5e1';
+                    line.style.height = isMajor ? '18px' : '11px';
+                    line.style.width = isMajor ? '2px' : '1.5px';
+                    if (label) {
+                        label.style.color = '#94a3b8';
+                        label.style.fontWeight = '600';
+                        label.style.transform = 'scale(1)';
+                    }
+                }
+            }
         }
 
         // CUSTOM AREA DROPDOWN TOGGLE & SELECT
@@ -1081,7 +1352,7 @@
 
             const isCommercial = profile.lastCylinderType === 'commercial';
             const cylEl = document.getElementById('popupLastCylinder');
-            if (cylEl) cylEl.textContent = isCommercial ? 'Commercial 45 Kg' : `Domestic ${profile.lastWeightKg || 1} Kg`;
+            if (cylEl) cylEl.textContent = isCommercial ? 'Commercial 45 Kg' : `Domestic ${profile.lastWeightKg || 10} Kg`;
 
             const addrEl = document.getElementById('popupSavedAddress');
             if (addrEl) addrEl.textContent = `${profile.area || 'Bahria Town'} — ${profile.address || 'Saved delivery address'}`;
@@ -1118,8 +1389,8 @@
             const preferredType = (profile && profile.lastCylinderType === 'commercial') ? 'commercial' : 'domestic';
             if (profile && profile.lastWeightKg && preferredType === 'domestic') {
                 state.domesticWeight = profile.lastWeightKg;
-                const weightDisplay = document.getElementById('domesticWeightDisplay');
-                if (weightDisplay) weightDisplay.textContent = `${state.domesticWeight} Kg`;
+                scrollDialToWeight(profile.lastWeightKg, false);
+                updateDialUI(profile.lastWeightKg);
             }
             openBookingModal(preferredType);
         }
@@ -1201,7 +1472,7 @@
         function openBookingModal(type) {
             state.selectedType = type;
             const isDomestic = (type === 'domestic');
-            const weight = isDomestic ? (state.domesticWeight || 1) : 45;
+            const weight = isDomestic ? (state.domesticWeight || 10) : 45;
             const itemName = isDomestic ? `Domestic Cylinder (${weight} Kg)` : `Commercial Cylinder (45 Kg)`;
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
             const ratePerKg = RATES.perKg || 560;
@@ -1279,7 +1550,7 @@
         // Submit complete order to WhatsApp
         async function submitOrderToWhatsApp() {
             const isDomestic = (state.selectedType === 'domestic');
-            const weightKg = isDomestic ? (state.domesticWeight || 1) : 45;
+            const weightKg = isDomestic ? (state.domesticWeight || 10) : 45;
             const itemName = isDomestic ? `Domestic Cylinder (${weightKg} Kg)` : `Commercial Cylinder (45 Kg)`;
             const qty = isDomestic ? state.domesticQty : state.commercialQty;
             const ratePerKg = RATES.perKg || 560;

@@ -214,7 +214,7 @@ class MabrixHandler(http.server.SimpleHTTPRequestHandler):
             orders = read_orders()
             new_id = body.get('id') or f"MBX-{int(datetime.now().timestamp() * 1000) % 1000000}"
             cylinder_code = body.get('cylinderCode', 'domestic')
-            weight_kg = int(body.get('weightKg', 45 if cylinder_code == 'commercial' else 1))
+            weight_kg = int(body.get('weightKg', 45 if cylinder_code == 'commercial' else 10))
             price_per_kg = int(body.get('pricePerKg', 560))
             quantity = int(body.get('quantity', 1))
             unit_price = int(body.get('pricePerUnit', weight_kg * price_per_kg))
