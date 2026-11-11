@@ -96,16 +96,21 @@
 
         html, body {
             height: 100%;
+            height: 100dvh;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         .app-wrapper {
             width: 100%;
             max-width: 480px;
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
             background-color: #ffffff;
-            min-height: 100vh;
-            min-height: 100dvh;
             position: relative;
             box-shadow: 0 0 50px rgba(21, 56, 124, 0.1);
             display: flex;
@@ -113,7 +118,8 @@
             justify-content: space-between;
             border-left: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
-            overflow-x: hidden;
+            overflow: hidden;
+            overscroll-behavior: none;
         }
 
         @media (min-width: 1024px) {
@@ -281,8 +287,8 @@
         </header>
 
 
-        <!-- MAIN 2 BIG CARDS (TIGHT NO-GAP VIEW) -->
-        <main class="px-3 py-2 flex flex-col gap-2 flex-grow justify-start" id="mainCardsContainer">
+        <!-- MAIN 2 BIG CARDS (ZERO-SCROLL VIEW WITH BALANCED CARDS) -->
+        <main class="px-3 py-1.5 flex flex-col justify-between flex-grow overflow-hidden" id="mainCardsContainer">
             
             <!-- RETURNING REGULAR CUSTOMER 1-CLICK BAR (AUTO-SHOWN IF PROFILE SAVED) -->
             <div id="quickReorderBar" class="hidden bg-gradient-to-r from-[#15387C] to-[#1e489e] text-white p-2.5 rounded-xl shadow-md border border-[#F6AD3A]/30 flex items-center justify-between gap-2 transition-all">
@@ -405,7 +411,7 @@
                 </div>
             </div>
 
-            <!-- CARD 2: COMMERCIAL CYLINDER 45 KG (COMPACT) -->
+            <!-- CARD 2: COMMERCIAL CYLINDER 45 KG (BALANCED BREATHING ROOM + 2 SPECS) -->
             <div class="big-lpg-card card-commercial p-3 sm:p-4 flex flex-col shadow-card-gold rounded-2xl" id="cardCommercial">
                 <div>
                     <!-- Title & Net Weight + Price Header -->
@@ -437,6 +443,28 @@
                                         <i class="fa-solid fa-plus text-[9px]"></i>
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2 Commercial Specs with Balanced Breathing Space -->
+                    <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-[#f8d294]/40">
+                        <div class="bg-white/80 border border-[#f8d294] rounded-xl px-2 py-1.5 flex items-center gap-2 shadow-xs">
+                            <div class="w-6 h-6 rounded-lg bg-[#fef7ec] text-[#F6AD3A] flex items-center justify-center text-xs shrink-0 font-bold border border-[#f8d294]/60">
+                                <i class="fa-solid fa-gauge-high"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-black uppercase text-[#15387C] block tracking-wide leading-tight">High Pressure</span>
+                                <span class="text-[9px] text-slate-500 font-bold block truncate">Commercial Valve</span>
+                            </div>
+                        </div>
+                        <div class="bg-white/80 border border-[#f8d294] rounded-xl px-2 py-1.5 flex items-center gap-2 shadow-xs">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs shrink-0 font-bold border border-emerald-200">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-black uppercase text-[#15387C] block tracking-wide leading-tight">Bulk Priority</span>
+                                <span class="text-[9px] text-slate-500 font-bold block truncate">Express Dispatch</span>
                             </div>
                         </div>
                     </div>
